@@ -13,65 +13,9 @@ f_type = WFIRST filter type
 
 ebf.py is needed to handle .ebf files output from Galaxia [link](http://galaxia.sourceforge.net/Galaxia3pub.html)
 # Skysurvey's file system.
-'''
-|-- data
-    |-- halos
-        |-- halo02
-            |--  teff
-            |--  age
-            |--  px
-            |--  etc.
-        |-- halo05
-            |--  teff
-            |--  age
-            |--  px
-            |--  etc.
-        |-- etc.
-    |-- grids
-        |-- fh_halo02_grid.npy
-        |-- fh_halo03_grid.npy
-        |-- etc.
-    |-- plots
-        |-- type_1
-            |-- plot_1.png
-            |-- plot_2.png
-            |-- etc.
-        |-- type_2
-            |-- plot_1.png
-            |-- plot_2.png
-            |-- etc.
-        |-- etc.
-    |-- tables
-        |-- table_1.hdf5
-        |-- table_2.tex
-        |-- etc
-    |-- text
-        |-- info.pdf
-        |-- reference.pdf
-    |-- etc.
-|-- skysurvey
-    |-- __init__.py
-    |-- functions.py
-    |-- grid.py
-    |-- gridplot.py
-    |-- options.py
-    |-- spinbin.py
-    |-- targetlist.py
-    |-- etc.
-|-- notebooks
-    |-- Various IPython notebooks.
-    |-- nb_1.ipynb
-    |-- nb_2.ipynb
-    |-- etc.
-|-- paper
-    |-- paper
-        |-- paper.tex
-        |-- paper.pdf
-        |-- lib.bib
-        |-- etc.
-    |-- tables
-        |-- tab_1.tex
-        |-- tab_2.tex
-        |-- etc.
-    |-- etc.
-'''
+
+* [notebooks](./notebooks)                                                                * [paper](./paper)                                                                        * [data](./data)                                                                          * [halos](./data/halos)                                                                   * [grids](./data/grids)                                                                   * [plots](./data/plots)                                                                   * [tables](./data/tables)                                                                 * [text](./data/text)                                                                     * [skysurvey](./skysurvey)                                                                * [spinbin.py](./skysurvey/spinbin.py)                                                    * [__init__.py](./skysurvey/__init__.py)
+* [functions.py](./skysurvey/functions.py)
+* [setup.py](./setup.py)
+* [tree-md.sh](./tree-md.sh)
+* [text.txt](./text.txt)
