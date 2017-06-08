@@ -13,7 +13,7 @@ f_type = WFIRST filter type
 
 ebf.py is needed to handle .ebf files output from Galaxia [link](http://galaxia.sourceforge.net/Galaxia3pub.html)
 # Skysurvey's file system.
-.
+'''
 |-- data
     |-- halos
         |-- halo02
@@ -74,4 +74,4 @@ ebf.py is needed to handle .ebf files output from Galaxia [link](http://galaxia.
         |-- tab_2.tex
         |-- etc.
     |-- etc.
-
+'''
