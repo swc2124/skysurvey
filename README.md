@@ -13,28 +13,36 @@ f_type = WFIRST filter type
 
 ebf.py is needed to handle .ebf files output from Galaxia [link](http://galaxia.sourceforge.net/Galaxia3pub.html)
 # Skysurvey's file system.
-## data
-    halos
-        halo02
-        halo05
-        etc.
-    grids
+data
+    - halos
+        - halo02
+        - halo05
+        - etc.
+    - grids
+        - < fh_grid.npy >
+    - plots
+        - type_1
+            - < fh.png >
+        - type_2
+            - < fh.png >
+    - tables
+        - table_1
+        - table_2
+    - text
+        - info.pdf
 
-    plots
-    tables
-    text
-## skysurvey
-    __init__.py
-    functions.py
-    grid.py
-    gridplot.py
-    options.py
-    spinbin.py
-    targetlist.py
-## notebooks
-    Various IPython notebooks.
-## paper
-    paper
-    tables
+skysurvey
+    - __init__.py
+    - functions.py
+    - grid.py
+    - gridplot.py
+    - options.py
+    - spinbin.py
+    - targetlist.py
+notebooks
+    - Various IPython notebooks.
+paper
+    - paper
+    - tables
 
 
