@@ -1,0 +1,65 @@
+This is BibTeX, Version 0.99d (TeX Live 2015/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: paper.aux
+The style file: plain.bst
+Database file #1: mylib.bib
+Warning--entry type for "Sharma:2011:Online" isn't style-file defined
+--line 114 of file mylib.bib
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1049 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1090 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1090 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1090 of file plain.bst
+Too many commas in name 1 of "Sharma, S., Bland-Hawthorn, J., Johnston, K. V., Binney" for entry Sharma:2011:Online
+while executing---line 1090 of file plain.bst
+You've used 5 entries,
+            2118 wiz_defined-function locations,
+            531 strings with 4916 characters,
+and the built_in function-call counts, 1646 in all, are:
+= -- 152
+> -- 89
+< -- 0
++ -- 35
+- -- 30
+* -- 129
+:= -- 289
+add.period$ -- 14
+call.type$ -- 5
+change.case$ -- 30
+chr.to.int$ -- 0
+cite$ -- 5
+duplicate$ -- 51
+empty$ -- 123
+format.name$ -- 30
+if$ -- 332
+int.to.chr$ -- 0
+int.to.str$ -- 5
+missing$ -- 4
+newline$ -- 27
+num.names$ -- 10
+pop$ -- 27
+preamble$ -- 1
+purify$ -- 25
+quote$ -- 0
+skip$ -- 37
+stack$ -- 0
+substring$ -- 97
+swap$ -- 5
+text.length$ -- 0
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 20
+warning$ -- 0
+while$ -- 14
+width$ -- 6
+write$ -- 54
+(There were 8 error messages)
