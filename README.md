@@ -111,7 +111,7 @@ TODO...
     
     make a new default configuration file:
     
-        skysurvey -new_cfg
+        skysurvey -new_cfg --prefix=~/
 
     read a configuration file into skysurvey:
 
@@ -133,10 +133,14 @@ TODO...
 
         skysurvey -plot_example
 
+    bin halo data into grids for all halos:
+
+        skysurvey -binall
+
     TODO...
 
         TODO...
-        
+
 3. set or reset the config file setup.cfg
         
     The config file setup.cfg is where all the system defaults will be stored.
@@ -161,18 +165,29 @@ TODO...
             [...]
 
 
-4. make file system.
+4. make file system:
 
         skysurvey -make_fs -v 
 
-5. make halo output grids.
+5. make halo output grids:
 
-        skysurvey -make_grids -v
+        skysurvey -make_grids -v 
 
-6. run example
+6. bin halo data into grids:
 
-        skysurvey -plot_example -v
+        skysurvey -binall -v
 
+            or
+
+        skysurvey -spinnall -binall -v 
+
+7. produce plots of binned data:
+
+        skysurvey -plotall -v
+
+8. spin and re-bin all halos and re-plot all grids:
+    
+        skysurvey -spinnall -binnall -plotall -v
 
 TODO...
 #### Universal/Default definitions/values used throughout the package.

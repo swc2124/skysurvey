@@ -1122,7 +1122,7 @@ pip install ./ -v
 <li>
 <p>Overview of command line tools.</p>
 <p>make a new default configuration file:</p>
-<pre><code>skysurvey -new_cfg
+<pre><code>skysurvey -new_cfg --prefix=~/
 </code></pre>
 <p>read a configuration file into skysurvey:</p>
 <pre><code>skysurvey -configure ~/setup.cfg
@@ -1138,6 +1138,9 @@ pip install ./ -v
 </code></pre>
 <p>make an example/test plot to see if everything is working:</p>
 <pre><code>skysurvey -plot_example
+</code></pre>
+<p>bin halo data into grids for all halos:</p>
+<pre><code>skysurvey -binall
 </code></pre>
 <p>TODO&hellip;</p>
 <pre><code>TODO...
@@ -1166,18 +1169,32 @@ default path if value = False</p>
 </code></pre>
 </li>
 <li>
-<p>make file system.</p>
+<p>make file system:</p>
 <pre><code>skysurvey -make_fs -v
 </code></pre>
 </li>
 <li>
-<p>make halo output grids.</p>
+<p>make halo output grids:</p>
 <pre><code>skysurvey -make_grids -v
 </code></pre>
 </li>
 <li>
-<p>run example</p>
-<pre><code>skysurvey -plot_example -v
+<p>bin halo data into grids:</p>
+<pre><code>skysurvey -binall -v
+
+    or
+
+skysurvey -spinnall -binall -v
+</code></pre>
+</li>
+<li>
+<p>produce plots of binned data:</p>
+<pre><code>skysurvey -plotall -v
+</code></pre>
+</li>
+<li>
+<p>spin and re-bin all halos and re-plot all grids:</p>
+<pre><code>skysurvey -spinnall -binnall -plotall -v
 </code></pre>
 </li>
 </ol>
