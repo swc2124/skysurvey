@@ -1,8 +1,0 @@
-\contentsline {section}{\numberline {1}The 100 Brightest Targets}{2}
-\contentsline {subsection}{\numberline {1.1}Karachentsev's catalog NEARGALCAT}{2}
-\contentsline {subsection}{\numberline {1.2}Our Targets}{2}
-\contentsline {section}{\numberline {2}An Example Survey}{3}
-\contentsline {section}{\numberline {3}Interpreting Simulated Data}{5}
-\contentsline {subsection}{\numberline {3.1}$Log_{10}(N_{stars})/deg^{2}$}{5}
-\contentsline {subsection}{\numberline {3.2}Number of stars as a function of radius and star-galaxy separation}{6}
-\contentsline {subsection}{\numberline {3.3}Understanding the data}{9}

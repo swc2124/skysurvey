@@ -92,7 +92,7 @@ _defaults = {
 
     }
 
-def new_cfg(config, defaults=_defaults, cfg_fh=config_fh):
+def new_cfg(config=ConfigParser.RawConfigParser(), defaults=_defaults, cfg_fh=config_fh):
     '''Make a new configuration file <setup.cfg> in the top level skysurvey directory.
     
     This will erase and replace any existing cfg file
@@ -116,5 +116,5 @@ def new_cfg(config, defaults=_defaults, cfg_fh=config_fh):
 if __name__ == '__main__':
     import ConfigParser
     import sys
-    new_cfg(ConfigParser.RawConfigParser())
+    new_cfg()
     sys.exit(0)

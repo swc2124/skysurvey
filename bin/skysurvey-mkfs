@@ -1,0 +1,5 @@
+#! python
+
+from makefilesystem import fsinit 
+
+fsinit()
