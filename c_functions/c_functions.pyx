@@ -19,14 +19,24 @@ from libc.math cimport sin
 from libc.math cimport M_PI
 
 import ConfigParser
+from skysurvey.new_config import SYS_CFG_FNAME
+import skysurvey
+
+sys_config_fh = os.path.join(os.path.dirname(os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)
+SysConfig = ConfigParser.ConfigParser()
+SysConfig.read(sys_config_fh)
+config_fh = SysConfig.get('skysurvey_global_settings', 'config_fh')
 Config = ConfigParser.ConfigParser()
-Config.read('../setup.cfg')
+Config.read(config_fh)
 
-NUM_PROCESSORS = int(os.environ['NUMBER_OF_PROCESSORS'])
-SATPROP = ebf.read('./satprop.ebf')
-
+ebf_fh = os.path.join(Config.get('PATH', 'data_dir'), 'satprop.ebf')
+SATPROP = ebf.read(ebf_fh)
 #np.import_array()
-
+if 'NUMBER_OF_PROCESSORS' in os.environ.keys():
+    NUM_PROCESSORS = int(os.environ['NUMBER_OF_PROCESSORS'])
+else:
+    NUM_PROCESSORS = 1
+    
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def rotation_matrix(np.ndarray[np.float64_t, ndim=1, mode='c'] ax, np.float64_t th):
@@ -96,7 +106,7 @@ def trippel_rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] y, np.int_t center=250, np.float64_t scale=6.0):
+def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] y):
     '''
     Convert np.array of float64 to int32 for binning into a grid.
 
@@ -115,33 +125,32 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
 
     scale : float
             float representing the scale factor for matching Kpc to the grid.
-
-
     Returns
     -------
     np.array,np.array
             Returns two equivalent length arrays in int32 form.
     '''
+    center = Config.getint('grid_options', 'size') / 2.0
+    scale = Config.getint('grid_options', 'size') / (x.max() + np.abs(x.min()))
     line = '-' * 85
     #print('converting px and py arrays to integers')
 
     print(line)
     print('\n', '[ integerize ]', '\n')
-    scale = (center * 2.0) / 600.0
     
-    print('[ before ] px min, mean, ,max : ', x.min(), ',', x.mean(), ',', x.max())
+    print('[ before ] px min, mean, max : ', x.min(), ',', x.mean(), ',', x.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] x1 = x.round(3)
     x1 *= scale
     x1 += center
     x2 = x1.astype(np.int32)
-    print(' [ after ] px min, mean, ,max : ', x2.min(), ',', x2.mean(), ',', x2.max())
+    print(' [ after ] px min, mean, max : ', x2.min(), ',', x2.mean(), ',', x2.max())
 
-    print('[ before ] py min, mean, ,max : ', y.min(), ',', y.mean(), ',', y.max())
+    print('[ before ] py min, mean, max : ', y.min(), ',', y.mean(), ',', y.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] y1 = y.round(3)
     y1 *= scale
     y1 += center
     y2 = y1.astype(np.int32)
-    print(' [ after ] py min, mean, ,max : ', y2.min(), ',', y2.mean(), ',', y2.max())
+    print(' [ after ] py min, mean, max : ', y2.min(), ',', y2.mean(), ',', y2.max())
     
     return x2, y2
 
@@ -151,43 +160,7 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
         np.ndarray[np.float64_t, ndim=1] ab_mags, np.ndarray[np.float64_t, ndim=1] ap_mags,
         np.ndarray[np.float64_t, ndim=1] r_proj, np.ndarray[np.float64_t, ndim=1] lims,
         np.ndarray[np.int32_t, ndim=1] satid):
-    '''[summary]
-    
-    [description]
-    
-    Arguments:
-        np.ndarray[np.int32_t {[type]} -- [description]
-        np.ndarray[np.int32_t {[type]} -- [description]
-        np.ndarray[np.float64_t {[type]} -- [description]
-        np.ndarray[np.float64_t {[type]} -- [description]
-        np.ndarray[np.float64_t {[type]} -- [description]
-        np.ndarray[np.float64_t {[type]} -- [description]
-        np.ndarray[np.int32_t {[type]} -- [description]
-    
-    Keyword Arguments:
-        ndim {[type]} -- [description] (default: {1] px})
-        ndim {[type]} -- [description] (default: {1] py})
-        ndim {[type]} -- [description] (default: {1] ab_mags})
-        ndim {[type]} -- [description] (default: {1] ap_mags})
-        ndim {[type]} -- [description] (default: {1] r_proj})
-        ndim {[type]} -- [description] (default: {1] lims})
-        ndim {[type]} -- [description] (default: {1] satid})
-    
-    Returns:
-        [np.ndarray] -- [grid]
 
-        grid[0] = 
-        grid[1] = 
-        grid[2] = 
-        grid[3] = 
-        grid[4] = 
-        grid[5] = 
-        grid[6] = 
-        grid[7] = 
-        grid[8] = 
-        grid[9] = 
-        grid[10] = 
-    '''
     line = '-' * 85
     print(line)
     print('\n', '[ bin ]', '\n')
@@ -206,7 +179,8 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
         np.float64_t apparent_mag
 
         # The grid array (grid)
-        np.ndarray[np.float64_t, ndim = 3, mode='c'] grid = np.zeros((500, 500, 11), dtype=np.float64)
+
+        np.ndarray[np.float64_t, ndim = 3, mode='c'] grid = np.zeros((Config.getint('grid_options', 'size'), Config.getint('grid_options', 'size'), Config.getint('grid_options', 'n_slices')), dtype=np.float64)
      
         # Satprop arrays. TODO package data file
         np.ndarray[np.float32_t, ndim=1] tsat = SATPROP['tsat']
@@ -313,7 +287,7 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
                 grid[px[i], py[i], 7] += 1.0
 
                 # Radial distance (Kpc).
-                #grid[px[i], py[i], 9] += r_proj[i]
+                #grid[px[i], py[i], 8] += r_proj[i]
 
                 # Accretion time (Gyr) for all stars.
                 grid[px[i], py[i], 8] += sat_age

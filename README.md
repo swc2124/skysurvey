@@ -146,7 +146,7 @@ TODO...
     The config file setup.cfg is where all the system defaults will be stored.
     To generate a new config file a user may run the following:
 
-        skysurvey -new_cfg --prefix=/path/to/where/you/want/the/cfg/file
+        skysurvey-new_cfg --prefix=/path/to/where/you/want/the/cfg/file
 
     Within the new congih file look for the following headers and select your OS by setting its value to 1.
     You may also set the path to the skysurvey file system if you wish.
@@ -167,7 +167,7 @@ TODO...
 
 4. make file system:
 
-        skysurvey -make_fs -v 
+        skysurvey-make_fs -v 
 
 5. make halo output grids:
 

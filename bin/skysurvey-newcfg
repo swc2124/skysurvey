@@ -1,5 +1,0 @@
-#! python
-
-from new_config import new_cfg
-
-new_cfg()

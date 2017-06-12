@@ -1,19 +1,27 @@
 """TODO"""
 from __future__ import division, absolute_import, print_function
 
-import os.path as ospth
-
+import os
 import math
 import numpy as np
 
 from c_functions import find_dlims
 
+import ConfigParser
+from .new_config import SYS_CFG_FNAME
+import skysurvey
+
 __all__ = ['load_ab_mags', 'apparent_magnitude', 'load_positions', 'load_satid', 'load_allkeys',
            'calculate_abs_mag', 'calculate_nFov']
 
-import ConfigParser
+sys_config_fh = os.path.join(os.path.dirname(
+    os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)
+SysConfig = ConfigParser.ConfigParser()
+SysConfig.read(sys_config_fh)
+config_fh = SysConfig.get('skysurvey_global_settings', 'config_fh')
 Config = ConfigParser.ConfigParser()
-Config.read('../setup.cfg')
+Config.read(config_fh)
+
 
 def calculate_app_mag(cutoff, t_fov=2000.0, t_exp=1000.0):
     '''
@@ -35,6 +43,7 @@ def calculate_app_mag(cutoff, t_fov=2000.0, t_exp=1000.0):
             returns the apparent magnitude limit given input parameters
     '''
     return np.float64(cutoff + 2.5 * np.log10(t_fov / t_exp))
+
 
 def calculate_abs_mag(distance=1.0, _f_type=None):
     '''
@@ -59,7 +68,8 @@ def calculate_abs_mag(distance=1.0, _f_type=None):
         distance = Config.getfloat('Distance', 'd_mpc')
     if _f_type == None:
         _f_type = Config.get('Filter', 'filter_type')
-    app_mag = calculate_app_mag(filter_limits[_f_type])
+    filter_limit = Config.getfloat('Filter_limits', _f_type)
+    app_mag = calculate_app_mag(filter_limit)
     return np.float64(app_mag - (5.0 * np.log10(distance * 1e5)))
 
 
@@ -88,10 +98,12 @@ def load_ab_mags(halo_name, f_type=None, f_prfx=None):
     if f_type == None:
         f_type = Config.get('Filter', 'filter_type')
     _filter_ = f_prfx + f_type
-    fh = ospth.join(Config.get('PATH', 'halo_dir') , halo_name, _filter_ + '.npy')
+    fh = os.path.join(Config.get('PATH', 'halo_dir'),
+                      halo_name, _filter_ + '.npy')
     #print('loading magnitude array: ' + fh)
     mags = np.load(fh)
     return mags.astype(np.float64)
+
 
 def load_data_arr(halo_name, data_key, lim):
     """
@@ -113,7 +125,8 @@ def load_data_arr(halo_name, data_key, lim):
         returns a magnitude numpy array 
 
     """
-    fh = ospth.join(Config.get('PATH', 'halo_dir') , halo_name, data_key + '.npy')
+    fh = os.path.join(Config.get('PATH', 'halo_dir'),
+                      halo_name, data_key + '.npy')
     #print('loading ' + data_key + ' array: ' + fh)
     mags = np.load(fh, mmap_mode='r')[lim]
     return mags.astype(np.float64)
@@ -140,20 +153,21 @@ def load_positions(halo, idx):
     '''
     # use Config.get('PATH', 'halo_dir') from options to inform data directory
     # and concatenate it with the halo's name to form a PATH.
-    path = ospth.join(Config.get('PATH', 'halo_dir') , halo)
+    fh = os.path.join(Config.get('PATH', 'halo_dir'), halo)
     #print('loading position arrays from: ' + path)
+    position_arrays = []
+    for key in Config.get('Data_keys', 'positions').split(','):
+        position_arrays.append(
+            np.load(os.path.join(fh, key + '.npy'), mmap_mode='r')[idx])
+    return np.asarray(position_arrays, dtype=np.float64)
 
-    return np.asarray([
-        np.load(ospth.join(path, 'px.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'py.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'pz.npy'), mmap_mode='r')[idx]],
-        dtype=np.float64)
 
 def load_satid(halo, idx):
-    path = ospth.join(Config.get('PATH', 'halo_dir') , halo, 'satid.npy')
-    print('loading satid from: ', path)
-    return np.load(path, mmap_mode='r')[idx]
-    
+    fh = os.path.join(Config.get('PATH', 'halo_dir'), halo, 'satid.npy')
+    print('loading satid from: ', fh)
+    return np.load(fh, mmap_mode='r')[idx]
+
+
 def load_allkeys(halo, idx):
     '''
     Load indexed x,y,z position arrays for a gin halo 
@@ -175,18 +189,13 @@ def load_allkeys(halo, idx):
     '''
     # use Config.get('PATH', 'halo_dir') from options to inform data directory
     # and concatenate it with the halo's name to form a PATH.
-    path = ospth.join(Config.get('PATH', 'halo_dir') , halo)
+    fh = os.path.join(Config.get('PATH', 'halo_dir'), halo)
     #print('loading data arrays from: ' + path)
-    return np.asarray([
-        np.load(ospth.join(path, 'teff.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'age.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'feh.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'alpha.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'lum.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'smass.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'mact.npy'), mmap_mode='r')[idx],
-        np.load(ospth.join(path, 'mtip.npy'), mmap_mode='r')[idx]],
-        dtype=np.float64)
+    data_arrays = []
+    for key in Config.get('Data_keys', 'data').split(','):
+        data_arrays.append(np.load(os.path.join(
+            fh, key + '.npy'), mmap_mode='r')[idx])
+    return np.asarray(data_arrays, dtype=np.float64)
 
 
 def apparent_magnitude(mag_abs, distance):
@@ -245,6 +254,7 @@ def rotation_matrix(ax, th):
     pz = [2.0 * (bd + ac), 2.0 * (cd - ab), aa + dd - bb - cc]
     return px, py, pz
 
+
 def rotate(xyz, axis, theta):
     '''
     Consolidates data and rotation options into a single function.
@@ -266,6 +276,7 @@ def rotate(xyz, axis, theta):
     #print('rotating x, y and z position arrays')
     return np.asarray(np.dot(rotation_matrix(axis, theta), xyz), dtype=np.float64)
 
+
 def kpc_box_at_distance(distance, kpc, unit=3600.0):
     '''
     Input distance in Mpc
@@ -273,6 +284,7 @@ def kpc_box_at_distance(distance, kpc, unit=3600.0):
     ((206265.0*(_kpc_/1e2)/distance*1e1)/3600)^2
     '''
     return (((206265.0 * kpc) / (distance * 1e3)) / unit)**2
+
 
 def calculate_nFov(distance, kpc):
     '''
@@ -286,4 +298,3 @@ def calculate_nFov(distance, kpc):
         return int(1)
     else:
         return math.ceil(n_fov)
-
