@@ -89,7 +89,8 @@ setup(
             'skysurvey-new-cfg = skysurvey.new_config:new_cfg',
             'skysurvey-nospin-binall = skysurvey.spinbin:nospin_binall',
             'skysurvey-table-bin = skysurvey.table_bin:table_bin',
-            'skysurvey-fix-grids = skysurvey.fix_grids:fix_grids2',
+            'skysurvey-table-merge = skysurvey.table_bin:table_merge',
+
 
         ]
     },

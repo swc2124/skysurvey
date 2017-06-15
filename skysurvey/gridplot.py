@@ -2,8 +2,8 @@
 from __future__ import division, absolute_import, print_function
 
 from warnings import warn
-from os import listdir
-from os.path import join as join
+import os
+
 
 from numpy import float64
 from numpy import array
@@ -15,7 +15,7 @@ from numpy import pi
 from numpy import log10
 from numpy import linspace
 from numpy import logical_and
-
+import numpy as np
 
 import matplotlib
 matplotlib.use('AGG')
@@ -30,10 +30,10 @@ from matplotlib.pyplot import pcolormesh
 from matplotlib.pyplot import colorbar
 '''
 
-from .spinbin import spinone
+from skysurvey.spinbin import spinone
 
 import ConfigParser
-from .new_config import SYS_CFG_FNAME
+from skysurvey.new_config import SYS_CFG_FNAME
 import skysurvey
 
 sys_config_fh = os.path.join(os.path.dirname(
@@ -84,14 +84,14 @@ def _Grid_list(_Grid_path=None, _d_Mpc=None, _f_type=None):
         the output of spinbin.spinall ro spin.
     '''
     if _Grid_path == None:
-        _Grid_path = Config.getfloat('PATH', 'grid_dir')
-    if d_Mpc == None:
-        d_Mpc = Config.getfloat('Distance', 'd_mpc')
+        _Grid_path = Config.get('PATH', 'grid_dir')
+    if _d_Mpc == None:
+        _d_Mpc = Config.getfloat('Distance', 'd_mpc')
     if _f_type == None:
-        _f_type = Config.getfloat('Filter', 'filter_type')
+        _f_type = Config.get('Filter', 'filter_type')
     print('reading arrays from : ' + _Grid_path)
     print('[' + str(_d_Mpc) + ']')
-    _Grids = [i for i in listdir(_Grid_path) if i.endswith(
+    _Grids = [i for i in os.listdir(_Grid_path) if i.endswith(
         '_' + str(_d_Mpc) + 'Mpc_' + _f_type + '_grid.npy')]
     if len(_Grids) > 0:
         _Grids.sort()
@@ -104,6 +104,26 @@ def _Grid_list(_Grid_path=None, _d_Mpc=None, _f_type=None):
             'Have you run < spinbin.spinall() > yet?'))
         return []
 
+def fix_rslice(grid, rslices=[14]):
+
+    center = grid.shape[0] / 2
+    ratio = (1.0 * Config.getint('grid_options', 'size')) / \
+            (2.0 * Config.getfloat('halo_data_settings', 'radial_cut'))
+    # if VERBOSE:
+    # print('fixing radial data slice')
+    # print('ratio: ', ratio)
+    # print('slices: ', rslices)
+    # print('center:', center)
+    for r in rslices:
+        for i in range(grid.shape[0]):
+            for q in range(grid.shape[1]):
+                value = np.sqrt(
+                    (np.square(i - center) + np.square(q - center)))
+                value /= ratio
+                if value > 300.0:
+                    value = 0.0
+                grid[i, q, r] = value
+    return grid
 
 def nstars_per_sqdeg(d_Mpc=None, plot_path=None, f_type=None):
     """
@@ -127,17 +147,18 @@ def nstars_per_sqdeg(d_Mpc=None, plot_path=None, f_type=None):
     """
     # figure dimensions
     if plot_path == None:
-        plot_path = Config.getfloat('PATH', 'plot_dir')
+        plot_path = Config.get('PATH', 'plot_dir')
     if d_Mpc == None:
         d_Mpc = Config.getfloat('Distance', 'd_mpc')
     if f_type == None:
-        f_type = Config.getfloat('Filter', 'filter_type')
+        f_type = Config.get('Filter', 'filter_type')
+    grid_dir = Config.get('PATH', 'grid_dir')
     fig_x = 31
     fig_y = 23
     plotname = 'log(n_stars(m_app<26.87))/arcmin^2 vs. radial separation Kpc'
     x0 = 0
     x1 = 301
-
+    plot_path = os.path.join(plot_path, 'grid_plot')
     xticks = [str(round(i)) for i in linspace(0, 300, 9)]
     x_label = 'Radial Distance (Kpc)'
     y_label = 'Log(N_stars)/arcmin^2'
@@ -153,9 +174,9 @@ def nstars_per_sqdeg(d_Mpc=None, plot_path=None, f_type=None):
     max_strs = []
     print('finding min and max for y-axis')
     for fh in _Grids:
-        filename = join(grid_dir, fh)
+        filename = os.path.join(grid_dir, fh)
         arr = load(filename)
-        strs = log10(arr[:, :, 3:6][arr[:, :, 0] > 0.].flatten() / mod)
+        strs = log10(arr[:, :, 0].flatten() / mod)
         min_strs.append(strs[strs != -float('Inf')].min())
         max_strs.append(strs.max())
     y0 = min(min_strs)
@@ -165,8 +186,8 @@ def nstars_per_sqdeg(d_Mpc=None, plot_path=None, f_type=None):
     print('plotting')
     for i, _Grid in enumerate(_Grids):
         print(' -> ' + _Grid)
-        filename = join(grid_dir, _Grid)
-        array = load(filename)
+        filename = os.path.join(grid_dir, _Grid)
+        array = fix_rslice(load(filename))
         ax = fig.add_subplot(3, 4, i + 1)
         header = _Grid.split('_')
         title = header[0]
@@ -202,17 +223,19 @@ def nstars_per_sqdeg(d_Mpc=None, plot_path=None, f_type=None):
     #ax12.legend(['(10^5) blue: m<' + str(mag_lim_max), '(10^4.6) red: m<' + str(mag_lim_mid), '(10^4) black: m<' + str(mag_lim_low)],fontsize=30, shadow=True)
     full_plot_filename = plot_path + 'sqdeg_' + \
         str(d_Mpc).split('.')[0] + 'Mpc_' + f_type
+
+    print(full_plot_filename)
     fig.savefig(full_plot_filename)
     plt.close()
 
 
 def nstars(d_Mpc=None, plot_path=None, f_type=None, lims=[100.0, 300.0]):
     if plot_path == None:
-        plot_path = Config.getfloat('PATH', 'plot_dir')
+        plot_path = Config.get('PATH', 'plot_dir')
     if d_Mpc == None:
         d_Mpc = Config.getfloat('Distance', 'd_mpc')
     if f_type == None:
-        f_type = Config.getfloat('Filter', 'filter_type')
+        f_type = Config.get('Filter', 'filter_type')
     fig_x = 31
     fig_y = 23
     plotname = 'Log number of stars per square arcmin\n'
@@ -237,7 +260,7 @@ def nstars(d_Mpc=None, plot_path=None, f_type=None, lims=[100.0, 300.0]):
         return
     print('plotting')
     for i, _Grid in enumerate(_Grids):
-        filename = join(grid_dir, _Grid)
+        filename = os.path.join(grid_dir, _Grid)
         print(' -> ' + filename)
         array = load(filename)
         ax = fig.add_subplot(3, 4, i + 1)
@@ -280,12 +303,14 @@ def nstars(d_Mpc=None, plot_path=None, f_type=None, lims=[100.0, 300.0]):
 def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
             d_Mpc=None, plot_path=None,
             f_type=None, radius=None):
+
     if plot_path == None:
-        plot_path = Config.getfloat('PATH', 'plot_dir')
+        plot_path = Config.get('PATH', 'plot_dir')
     if d_Mpc == None:
         d_Mpc = Config.getfloat('Distance', 'd_mpc')
     if f_type == None:
-        f_type = Config.getfloat('Filter', 'filter_type')
+        f_type = Config.get('Filter', 'filter_type')
+    grid_dir = Config.get('PATH', 'grid_dir')
     plt_halos = []
     print('loading filenames')
     for i in _Grid_list(_d_Mpc=d_Mpc, _f_type=f_type):
@@ -293,8 +318,10 @@ def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
         if breakdown[0] in plot_halos:
             plt_halos.append(i)
             print(' -> [ selected ] ', i)
+
     fig_x = 42
     fig_y = 40
+
     plotname = 'Log Number of stars per square arcmin'
     fig = plt.figure(figsize=(fig_x, fig_y))
     fig.suptitle(plotname + '\n' + str(d_Mpc) +
@@ -304,9 +331,9 @@ def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
     max_strs = []
     print('finding min and max for y-axis')
     for fh in plt_halos:
-        filename = join(grid_dir, fh)
+        filename = os.path.join(grid_dir, fh)
         arr = load(filename)
-        strs = log10(arr[:, :, 3:6][arr[:, :, 0] > 0.].flatten() / mod)
+        strs = log10(arr[:, :, 0] / mod)
         min_strs.append(strs[strs != -float('Inf')].min())
         max_strs.append(strs.max())
     _y0 = min(min_strs)
@@ -314,15 +341,17 @@ def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
     print('y-axis min: ', round(_y0, 2))
     print('y-axis max: ', round(_y1, 2))
     for p_num, _file in enumerate(plt_halos):
+        
         if radius:
             r0, r1 = radius[p_num]
         else:
             r0, r1 = 0, 1
+
         header = _file.split('_')
         title = header[0]
-        filename = join(grid_dir, _file)
+        filename = os.path.join(grid_dir, _file)
         print(' -> ' + filename)
-        array = load(filename)
+        array = fix_rslice(load(filename))
         for i in range(3):
 
             plot_number = (p_num * len(plt_halos)) + (i + 1)
@@ -350,7 +379,7 @@ def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
                 mlim_max = log10(
                     array[:, :, 5][array[:, :, 0] > 0.].flatten() / mod)
 
-                rads = array[:, :, 6][array[:, :, 0] > 0.].flatten()
+                rads = array[:, :, 14][array[:, :, 0] > 0.].flatten()
                 idx = logical_and(rads > r0, rads < r1)
 
                 ax.scatter(rads[idx], mlim_max[idx], s=80, alpha=.6, color='orange',
@@ -386,7 +415,7 @@ def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
 
                 hm = ax.pcolormesh(
                     log10(array[:, :, 0] / mod), cmap=plt.cm.plasma, vmin=-1, vmax=3.5)
-                cp = ax.contour(array[:, :, 6], [r0, r1], colors='white',
+                cp = ax.contour(array[:, :, 14], [r0, r1], colors='white',
                                 linewidths=7, alpha=.5, linestyles='dashed')
                 ax.clabel(cp, [r0, r1], inline=1, fmt='%s Kpc',
                           fontsize=25, color='white', linewidth=7, alpha=.9)
@@ -450,7 +479,7 @@ def make_plots(distances=[2.0, 5.0], f_types=['h158'],
                plot_halos=['halo08', 'halo15', 'halo20'],
                radius=None):
     if plot_path == None:
-        plot_path = Config.getfloat('PATH', 'plot_dir')
+        plot_path = Config.get('PATH', 'plot_dir')
     for f_typ in f_types:
 
         for dist in distances:
@@ -464,7 +493,7 @@ def make_plots(distances=[2.0, 5.0], f_types=['h158'],
 
 def run_limits(target_n=85.0, radius=75.0, n_attemts=100, distances=[2.0, 5.0], f_typ=None):
     if f_type == None:
-        f_type = Config.getfloat('Filter', 'filter_type')
+        f_type = Config.get('Filter', 'filter_type')
     for distance in distances:
         mod = sqr_arcmin(d_Mpc=distance)
 

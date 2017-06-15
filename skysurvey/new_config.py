@@ -70,7 +70,7 @@ def new_cfg(halo_ebf_path=_my_halos, sys_config_filename=SYS_CFG_FNAME):
         ],
         'grid_options': [
             ('size', 500),
-            ('n_slices', 11)
+            ('n_slices', 15)
         ],
         'options': [
             ('zip_safe', False),
@@ -83,7 +83,7 @@ def new_cfg(halo_ebf_path=_my_halos, sys_config_filename=SYS_CFG_FNAME):
             ('classifiers', 'Programming Language :: Python :: 2.7')
         ],
         'Global': [
-            ('verbose', 1)
+            ('verbose', True)
         ],
 
         'Distance': [

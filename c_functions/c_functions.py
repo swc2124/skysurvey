@@ -210,7 +210,7 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
         np.float32_t sat_age
 
         # Bound or unbound status.
-        np.int32_t sat_bound_unbound
+        np.int32_t sat_bound
 
         # Number of (Bound) or (unbound) stars.
         np.int32_t bound = 0
@@ -248,61 +248,59 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
             else:
                 sat_number = satid[i]
                 sat_age = tsat[sat_number]
-                sat_bound_unbound = bsat[sat_number]
+                
+                sat_bound = bsat[sat_number]
+                apparent_mag = ap_mags[i]
 
                 # If the star is unbound [0].
-                if sat_bound_unbound < 1.0:
+                if not sat_bound:
                     unbound += 1
                     
                     # Bin stars.
                     grid[px[i], py[i], 0] += 1.0
                     
                     # Magnitudes.
-                    apparent_mag = ap_mags[i]
                     grid[px[i], py[i], 1] += ab_mags[i]
                     grid[px[i], py[i], 2] += apparent_mag
-
                     if apparent_mag < mlim_min:
                         grid[px[i], py[i], 3] += 1.0
                     if apparent_mag < mlim_med:
                         grid[px[i], py[i], 4] += 1.0
                     if apparent_mag < mlim_max:
                         grid[px[i], py[i], 5] += 1.0
-                    
-                    # Radial distance (Kpc).
-                    #grid[px[i], py[i], 6] += r_proj[i]
 
                     # Accretion time (Gyr) of satellite.
                     grid[px[i], py[i], 6] += sat_age
+                    # Satid.
+                    grid[px[i], py[i], 7] += sat_number
 
                 # If the star is bound [1].
                 else:
                     bound += 1
-                    if not sat_bound_unbound == 1:
+                    # Bin stars.
+                    grid[px[i], py[i], 8] += 1.0
+                    # Magnitudes.
+                    grid[px[i], py[i], 9] += ab_mags[i]
+                    grid[px[i], py[i], 10] += apparent_mag
+                    # Accretion time (Gyr).
+                    grid[px[i], py[i], 11] += sat_age
+                    # Satid.
+                    grid[px[i], py[i], 12] += sat_number
+                    if not sat_bound:
                         bad += 1
-
-                # FOR ALL STARS.
-                # --------------
-                # Bin all stars. Both bound and unbound.
-                grid[px[i], py[i], 7] += 1.0
-
-                # Radial distance (Kpc).
-                #grid[px[i], py[i], 8] += r_proj[i]
-
-                # Accretion time (Gyr) for all stars.
-                grid[px[i], py[i], 8] += sat_age
-
-                
+ 
     # Slices that need to be divided by the number of stars in each bin.
-    idx_1, idx_2 = np.nonzero(grid[:, :, 0] > 0.0)
+    idx_1, idx_2 = np.nonzero(grid[:, :, 0] > 0.)
     grid[idx_1, idx_2, 1] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 2] /= grid[idx_1, idx_2, 0]
-    #grid[idx_1, idx_2, 6] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 6] /= grid[idx_1, idx_2, 0]
+    grid[idx_1, idx_2, 7] /= grid[idx_1, idx_2, 0]
 
-    idx_1, idx_2 = np.nonzero(grid[:, :, 7] > 0.0)
-    #grid[idx_1, idx_2, 9] /= grid[idx_1, idx_2, 8]
-    grid[idx_1, idx_2, 8] /= grid[idx_1, idx_2, 7]
+    idx_1, idx_2 = np.nonzero(grid[:, :, 8] > 0.)
+    grid[idx_1, idx_2, 9] /= grid[idx_1, idx_2, 8]
+    grid[idx_1, idx_2, 10] /= grid[idx_1, idx_2, 8]
+    grid[idx_1, idx_2, 11] /= grid[idx_1, idx_2, 8]
+    grid[idx_1, idx_2, 12] /= grid[idx_1, idx_2, 8]
 
     print('\n-------------------------------')
     print('    bound stars: ', bound)
