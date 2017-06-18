@@ -69,7 +69,7 @@ def new_cfg(halo_ebf_path=_my_halos, sys_config_filename=SYS_CFG_FNAME):
             ('radial_cut', 300.)
         ],
         'grid_options': [
-            ('size', 500),
+            ('size', 600),
             ('n_slices', 15)
         ],
         'options': [

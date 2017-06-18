@@ -38,19 +38,20 @@ table_dirs_names = [name for name in os.listdir(table_dir)
                     if not name.startswith('.')]
 
 
-def new_feature(r0, r1, d0, d1, nbx, points):
-    return {
-        'r_in': r0,
-        'r_out': r1,
-        'degree0': d0,
-        'degree1': d1,
-        'nboxes': nbx,
-        'points': set(points)}
-
-def _plot(feat_dict, plot_number, halo):
-    if feat_dict['nboxes'] < 10:
-        return
-    #print('plotting', halo, 'feature number:', plot_number)
+def _plot(feat_dict):
+    if feat_dict['nboxes'] < 15:
+        if os.path.isfile(feat_dict['plot_fh'] + '.png'):
+            os.remove(feat_dict['plot_fh'] + '.png')
+        return feat_dict
+    if 'last_nboxes' in feat_dict.keys():
+        if feat_dict['nboxes'] == feat_dict['last_nboxes']:
+            return feat_dict
+    else:
+        feat_dict['last_nboxes'] = feat_dict['nboxes']
+    plot_number = feat_dict['feature_id']
+    sys.stdout.write('\nplotting ' + halo +
+                     ' feature number: ' + str(plot_number))
+    sys.stdout.flush()
     fig = plt.figure(figsize=(10, 10))
     title0 = 'group number:' + str(plot_number)
     title1 = '  r0: ' + str(feat_dict['r_in']) + \
@@ -66,23 +67,27 @@ def _plot(feat_dict, plot_number, halo):
     plr.set_ylim([0, 300])
     ax = fig.add_axes(rect, alpha=.2, facecolor=None, frame_on=False)
     ax.axis
-    ax.set_ylim([0, 500])
-    ax.set_xlim([0, 500])
+    ax.set_ylim([0, 600])
+    ax.set_xlim([0, 600])
     ax.axis('off')
     ax.set_aspect('equal')
     points = feat_dict['points']
-    x = [a for a, b in list(points)]
-    y = [b for a, b in list(points)]
-    ax.scatter(x, y)
-    plot_fh = os.path.join(Config.get(
-        'PATH', 'plot_dir'), 'groupfinder_testplots', halo + '_feature_' + str(plot_number))
     try:
-        fig.savefig(plot_fh)
-    except:
-        import time
-        time.sleep(1)
-        fig.savefig(plot_fh)
-    plt.close()
+        x = [a for a, b in list(points)]
+        y = [b for a, b in list(points)]
+        ax.scatter(x, y)
+        plot_fh = feat_dict['plot_fh']
+
+        try:
+            fig.savefig(plot_fh)
+        except:
+            pass
+        plt.close()
+        return feat_dict
+
+    except TypeError:
+        plt.close()
+        return feat_dict
 
 
 def _plot_halo(table):
@@ -96,8 +101,8 @@ def _plot_halo(table):
     plr.set_ylim([0, 300])
     ax = fig.add_axes(rect, alpha=.2, facecolor=None, frame_on=False)
     ax.axis
-    ax.set_ylim([0, 500])
-    ax.set_xlim([0, 500])
+    ax.set_ylim([0, 600])
+    ax.set_xlim([0, 600])
     ax.axes.grid()
     ax.set_aspect('equal')
     ax.axis('off')
@@ -113,22 +118,8 @@ def _plot_halo(table):
     plt.close()
 
 
-def add_to_feature(fdict, r1, deg0, deg1, pts):
-    fdict['r_out'] = r1
+def merge_heavy(f_dict):
 
-    if deg0 < fdict['degree0']:
-        fdict['degree0'] = round(deg0, 2)
-
-    if deg1 > fdict['degree1']:
-        fdict['degree1'] = round(deg1, 2)
-
-    fdict['points'].update(pts)
-    fdict['nboxes'] = len(fdict['points'])
-    return fdict
-
-def merge_heavy(f_dict, halo):
-    del_keys = []
-    n_attempts = 0
     for f_id in f_dict.keys():
         feature = f_dict[f_id]
         if not 'points' in feature.keys():
@@ -137,11 +128,11 @@ def merge_heavy(f_dict, halo):
             continue
         r_in = feature['r_in']
         r_out = feature['r_out']
-        deg0 = feature['degree0']
-        deg1 = feature['degree1']
+        r_center = r_in + ((r_out - r_in) / 2.0)
+        deg0 = feature['degree0'] - 1.0
+        deg1 = feature['degree1'] + 1.0
         for _f_id in f_dict.keys():
-
-            if _f_id == f_id:
+            if _f_id <= f_id:
                 continue
             _feature = f_dict[_f_id]
             if not 'points' in _feature.keys():
@@ -150,51 +141,49 @@ def merge_heavy(f_dict, halo):
                 continue
             _r_in = _feature['r_in']
             _r_out = _feature['r_out']
+            _r_center = _r_in + ((_r_out - _r_in) / 2.0)
             _deg0 = _feature['degree0']
             _deg1 = _feature['degree1']
-            center_deg = _deg0 + ((_deg1 - _deg0) / 2.0)
             merge = False
-            if (deg0 - 20.) <= _deg0 <= (deg1 + 10.) or (deg0 - 10.) <= _deg1 <= (deg1 + 20.0):
-                for x, y  in _feature['points']:
-                    if (r_in - 15.0 <= np.sqrt(np.square(x) + np.square(y)) <= r_out + 15.0):
-                        merge = True
-                        break
+            if (deg0 <= _deg0 <= deg1 or deg0 <= _deg1 <= deg1):
+                if (r_in + 1.0 < _r_center < r_out - 1.0):
+                    merge = True
             if merge:
-                feature['points'].update(_feature['points'])
-                if feature['r_in'] > _feature['r_in']:
-                    feature['r_in'] = _feature['r_in']
-                if feature['r_out'] < _feature['r_out']:
-                    feature['r_out'] = _feature['r_out']
-                if feature['degree0'] > _feature['degree0']:
-                    feature['degree0'] = _feature['degree0']
-                if feature['degree1'] < _feature['degree1']:
-                    feature['degree1'] = _feature['degree1']
-                _feature['points'] = set()
-
-                plot_fh = os.path.join(Config.get(
-                    'PATH', 'plot_dir'), 'groupfinder_testplots', halo + '_feature_' + str(_f_id) + '.png')
-                if os.path.isfile(plot_fh):
-                    os.remove(plot_fh)
-                sys.stdout.write('\n')
+                f_dict[f_id]['points'].update(_feature['points'])
+                if f_dict[f_id]['r_in'] > _feature['r_in']:
+                    f_dict[f_id]['r_in'] = _feature['r_in']
+                if f_dict[f_id]['r_out'] < _feature['r_out']:
+                    f_dict[f_id]['r_out'] = _feature['r_out']
+                if f_dict[f_id]['degree0'] + 180.0 > _feature['degree0'] + 180.0:
+                    f_dict[f_id]['degree0'] = _feature['degree0']
+                if f_dict[f_id]['degree1'] + 180.0 < _feature['degree1'] + 180.0:
+                    f_dict[f_id]['degree1'] = _feature['degree1']
+                if f_dict[f_id]['max_xboxvalue'] < _feature['max_xboxvalue']:
+                    f_dict[f_id]['max_xboxvalue'] = _feature['max_xboxvalue']
+                if f_dict[f_id]['min_xboxvalue'] > _feature['min_xboxvalue']:
+                    f_dict[f_id]['min_xboxvalue'] = _feature['min_xboxvalue']
+                for satid in f_dict[f_id]['sats_book'].keys():
+                    f_dict[f_id]['sats_book'][
+                        satid] += f_dict[_f_id]['sats_book'][satid]
+                f_dict[f_id]['nstars_total'] += _feature['nstars_total']
+                f_dict[_f_id]['points'] = set()
+                f_dict[_f_id]['nboxes'] = 0
+                f_dict[_f_id]['nstars_total'] = 0
+                sys.stdout.write(
+                    '\n\n [<HEAVY> Merged feature ' + str(_f_id) + ' into feature ' + str(f_id) + '] \n')
                 sys.stdout.flush()
-                print('Heavy Merged feature', _f_id,  'into feature ', f_id)
-                _plot(feature, f_id, halo)
-                del_keys.append(_f_id)
-
-    for key in del_keys:
-        del f_dict[key]
+        #f_dict[f_id] = _plot(f_dict[f_id])
     return f_dict
 
 
-def merge(f_dict, halo):
+def merge(f_dict):
     keys = f_dict.keys()
-    del_keys = []
     for f_id in keys:
         feature = f_dict[f_id]
         if not len(feature['points']):
             continue
         for i, _f_id in enumerate(keys):
-            if f_id == _f_id:
+            if _f_id == f_id:
                 continue
             merge = False
             _feature = f_dict[_f_id]
@@ -205,40 +194,91 @@ def merge(f_dict, halo):
                     merge = True
                     break
             if merge:
-                feature['points'].update(_feature['points'])
-                if feature['r_in'] > _feature['r_in']:
-                    feature['r_in'] = _feature['r_in']
-                if feature['r_out'] < _feature['r_out']:
-                    feature['r_out'] = _feature['r_out']
-                if feature['degree0'] > _feature['degree0']:
-                    feature['degree0'] = _feature['degree0']
-                if feature['degree1'] < _feature['degree1']:
-                    feature['degree1'] = _feature['degree1']
-                _feature['points'] = set()
-                plot_fh = os.path.join(Config.get(
-                    'PATH', 'plot_dir'), 'groupfinder_testplots', halo + '_feature_' + str(_f_id) + '.png')
-                if os.path.isfile(plot_fh):
-                    os.remove(plot_fh)
-                sys.stdout.write('\n')
+                f_dict[f_id]['points'].update(_feature['points'])
+                if f_dict[f_id]['r_in'] > _feature['r_in']:
+                    f_dict[f_id]['r_in'] = _feature['r_in']
+                if f_dict[f_id]['r_out'] < _feature['r_out']:
+                    f_dict[f_id]['r_out'] = _feature['r_out']
+                if f_dict[f_id]['degree0'] + 180.0 > _feature['degree0'] + 180.0:
+                    f_dict[f_id]['degree0'] = _feature['degree0']
+                if f_dict[f_id]['degree1'] + 180.0 < _feature['degree1'] + 180.0:
+                    f_dict[f_id]['degree1'] = _feature['degree1']
+                if f_dict[f_id]['max_xboxvalue'] < _feature['max_xboxvalue']:
+                    f_dict[f_id]['max_xboxvalue'] = _feature['max_xboxvalue']
+                if f_dict[f_id]['min_xboxvalue'] > _feature['min_xboxvalue']:
+                    f_dict[f_id]['min_xboxvalue'] = _feature['min_xboxvalue']
+                for satid in f_dict[f_id]['sats_book'].keys():
+                    f_dict[f_id]['sats_book'][
+                        satid] += f_dict[_f_id]['sats_book'][satid]
+                f_dict[f_id]['nstars_total'] += _feature['nstars_total']
+                f_dict[_f_id]['points'] = set()
+                f_dict[_f_id]['nboxes'] = 0
+                f_dict[_f_id]['nstars_total'] = 0
+                sys.stdout.write(
+                    '\n [Merged feature ' + str(_f_id) + ' into feature ' + str(f_id) + ']  \n')
                 sys.stdout.flush()
-                print('Merged feature', _f_id,  'into feature ', f_id)
-                _plot(feature, f_id, halo)
-                del_keys.append(_f_id)
-
-    for key in del_keys:
-        del f_dict[key]
+        #f_dict[f_id] = _plot(f_dict[f_id])
     return f_dict
 
-def resort_dict(f_dict):
-    l0 = {}
-    for key in f_dict.keys():
-        l0[key] = f_dict[key]['nboxes']
-    l0 = sorted(l0.items(), key=lambda x: x[1])
-    l0.reverse()
-    new_dict = {}
-    for i, value in enumerate(l0):
-        new_dict[i] = f_dict[value[0]]
-    return new_dict
+
+def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
+    sys.stdout.write('\nstarting feature number: ' + str(plt_num))
+    feature = {
+        'r_in': r0,
+        'r_out': r1,
+        'degree0': d0,
+        'degree1': d1,
+        'nboxes': len(set(points)),
+        'points': set(points),
+        'nstars_total': len(points),
+        'max_xboxvalue': max(xboxes),
+        'min_xboxvalue': min(xboxes),
+        'plot_fh': os.path.join(Config.get('PATH', 'plot_dir'), 'groupfinder_testplots', halo + '_feature_' + str(plt_num)),
+        'halo': halo,
+        'feature_id': plt_num,
+        'sats_book': sat_book}
+
+    return feature
+
+
+def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
+    superset = False
+    if fdict['points'].issuperset(pts):
+        superset = True
+    if fdict['r_out'] < r1:
+        fdict['r_out'] = r1
+    if deg0 + 180.0 < fdict['degree0'] + 180.0:
+        fdict['degree0'] = round(deg0, 2)
+    if deg1 + 180.0 > fdict['degree1'] + 180.0:
+        fdict['degree1'] = round(deg1, 2)
+    if fdict['max_xboxvalue'] < max(xbx):
+        fdict['max_xboxvalue'] = max(xbx)
+    if fdict['min_xboxvalue'] > min(xbx):
+        fdict['min_xboxvalue'] = min(xbx)
+    added = 0
+    new_points = set(pts)
+    unknown_points = new_points.difference(fdict['points'])
+    for i, point in enumerate(pts):
+        if point in unknown_points:
+            fdict['nstars_total'] += 1
+            added += 1
+            fdict['sats_book'][sats[i]] +=1
+    fdict['points'].update(pts)
+    fdict['nboxes'] = len(fdict['points'])
+    if not superset:
+        sys.stdout.write('\nadded ' + str(added) + ' out of ' + str(len(pts)) +
+                         ' stars to feature ' + str(fdict['feature_id']) )
+    if superset and added:
+        sys.exit(1)
+    sys.stdout.flush()
+    return fdict
+
+
+def count_satids(sats, sats_book):
+    sats = sats.tolist()
+    for satid in sats_book.keys():
+        sats_book[satid] += sats.count(satid)
+    return sats_book
 
 table_dirs = {}
 for name in table_dirs_names:
@@ -246,29 +286,36 @@ for name in table_dirs_names:
 
 percent = 0.1  # 10% of radius
 annulus_degree_step = 1  # Within 1 degree
-xbox_min_value = 10.0
+xbox_min_value = 7.0
 filenames = os.listdir(table_dirs['merged_tables'])
 filenames.reverse()
 
 for name in filenames:
+
     table_fh = os.path.join(table_dirs['merged_tables'], name)
     table = Table.read(table_fh, path='data')
+    #table = table[::1000]
     table.remove_rows(np.nonzero(table['Xbox'] < xbox_min_value))
-    table.add_column(Column(data=np.rad2deg(
-        table['Phi']), name='Degree', description='degrees', dtype=np.float16))
     halo = table.meta['halo']
     _plot_halo(table)
     master_dict = {}
     feature_id = 0
     r_start = int(table['Rads'].min())
-    r_stop =  int(table['Rads'].max())
+    r_stop = int(table['Rads'].max())
+    cycle = 0
+
+
     for i, annulus in enumerate(range(r_start, r_stop, 1)):
+
+        cycle += 1
         region = annulus * 0.1
         r_in = annulus - region
         r_out = annulus + region
         deg_start = table['Degree'].min()
         deg_end = table['Degree'].max()
+
         for degree in np.linspace(deg_start, deg_end, 360):
+
             lims = np.nonzero(
                 np.logical_and(
                     np.logical_and(
@@ -278,62 +325,133 @@ for name in filenames:
                         table['Rads'] >= r_in,
                         table['Rads'] < r_out)))
             n_boxes = len(lims[0])
+            points = zip((table['x_int'][lims]).tolist(),
+                         (table['y_int'][lims]).tolist())
+            satids = table['satids'][lims]
+            xbox_values = table['Xbox'][lims]
+
+            m5 = ' [nothing happend] '
             if n_boxes:
-                points = zip((table['x_int'][lims]).tolist(),
-                             (table['y_int'][lims]).tolist())
-                if not len(master_dict.keys()):
+
+                if not feature_id in master_dict.keys():
+                    sats_book = {}
+                    for satid in table.meta['satids']:
+                        sats_book[satid] = 0
+                    feature_id += 1
+                    # new_feature(r0, r1, d0, d1, halo, plt_num, points=[0],
+                    # xboxes=np.array([0]))
                     master_dict[feature_id] = new_feature(
                         r_in,
                         r_out,
                         round(degree, 2),
                         round(degree + annulus_degree_step, 2),
-                        n_boxes,
-                        points)
-                    continue
+                        halo,
+                        feature_id,
+                        points,
+                        xbox_values,
+                        count_satids(satids, sats_book))
+                    m5 = '[started feature] '
+                current_feature = False
                 known_feature = False
                 for known_feat_id in master_dict.keys():
                     feature = master_dict[known_feat_id]
-                    new_points = set(points)
-                    for point in new_points:
+                    for point in set(points):
                         if point in feature['points']:
+                            m5 = '[known feature] '
                             known_feature = True
                             break
                     if known_feature:
                         break
-                if known_feature:
-                    master_dict[known_feat_id] = add_to_feature(
-                        master_dict[known_feat_id],
-                        r_in,
+
+                if not known_feature:
+
+                    for unknown_point in set(points):
+
+                        x0, y0 = unknown_point
+                        known_points = master_dict[feature_id]['points']
+                        for known_point in known_points:
+                            x1, y1 = known_point
+                            distance = np.sqrt(
+                                np.square(x1 - x0) + np.square(y1 - y0))
+                            if distance < 2.0:
+                                m5 = '[current feature] '
+                                current_feature = True
+                                break
+                        if current_feature:
+                            break
+
+                if current_feature:
+                    master_dict[feature_id] = add_to_feature(
+                        master_dict[feature_id],
+                        r_out,
                         degree,
                         degree + annulus_degree_step,
-                        points)
+                        points,
+                        xbox_values,
+                        satids)
+
+                elif known_feature:
+                    # add_to_feature(fdict, r1, deg0, deg1, pts, xbx)
+                    master_dict[known_feat_id] = add_to_feature(
+                        master_dict[known_feat_id],
+                        r_out,
+                        degree,
+                        degree + annulus_degree_step,
+                        points,
+                        xbox_values,
+                        satids)
                 else:
                     feature_id += 1
+                    # new_feature(r0, r1, d0, d1, halo, plt_num, points=[0],
+                    # xboxes=np.array([0]))
+                    sats_book = {}
+                    for satid in table.meta['satids']:
+                        sats_book[satid] = 0
                     master_dict[feature_id] = new_feature(
                         r_in,
                         r_out,
                         round(degree, 2),
                         round(degree + annulus_degree_step, 2),
-                        n_boxes,
-                        points)
+                        halo,
+                        feature_id,
+                        points,
+                        xbox_values,
+                        count_satids(satids, sats_book))
 
-            master_dict = merge(master_dict, halo)
+                    m5 = '[else started feature] '
+                    master_dict = merge(master_dict)
+
             msg0 = '\r\r[ ' + halo + ' ] '
-            msg1 = '[ ' + str(annulus) + ' Kpc ] '
-            msg2 = '[ ' + str(feature_id) + ' ] '
-            msg3 = '[ ' + str(n_boxes) + ' ] '
-            msg4 = '[ ' + str(degree) + ' ] '
-            msg = msg0 + msg1 + msg2 + msg3 + msg4
+            msg1 = '[ r:' + str(annulus) + ' Kpc ] '
+            msg2 = '[ id: ' + str(feature_id) + ' ] '
+            msg3 = '[ nbx:' + str(n_boxes) + ' ] '
+            msg4 = '[ deg:' + str(round(degree, 2)) + ' ] '
+            msg = msg0 + msg1 + msg2 + msg3 + msg4 + m5
             sys.stdout.write(msg)
             sys.stdout.flush()
+        if m5 == ' [nothing happend] ':
+            continue
+        master_dict = merge(master_dict)
+        master_dict = merge_heavy(master_dict)
+
+        if len(master_dict.keys()) > 100:
+            master_dict = merge(master_dict)
+            master_dict = merge(master_dict)
+
+        if len(master_dict.keys()) > 1000:
+            master_dict = merge_heavy(master_dict)
+            master_dict = merge_heavy(master_dict)
 
     if len(master_dict.keys()) > 20:
-        master_dict = merge_heavy(master_dict, halo)
-    
-    master_dict = resort_dict(master_dict)
-    for i in range(5):
-        if i in master_dict.keys():
-            _plot(master_dict[i], i, halo)
+        master_dict = merge_heavy(master_dict)
+        master_dict = merge_heavy(master_dict)
+        master_dict = merge_heavy(master_dict)
+        master_dict = merge_heavy(master_dict)
+        master_dict = merge_heavy(master_dict)
+
+    # resort_dict(master_dict)
+    for key in master_dict.keys():
+        master_dict[key] = _plot(master_dict[key])
 
     logfile_fh = os.path.join(
         Config.get('PATH', 'plot_dir'),
@@ -341,22 +459,42 @@ for name in filenames:
         halo + '_logfile')
 
     with open(logfile_fh, 'w') as logfile:
-        logfile.write('\n' + '-' * 50 + '\n')
+        logfile.write('\n' + '-' * 70 + '\n')
+
         for key in table.meta.keys():
             logfile.write('[table]' + key + ': ' + str(table.meta[key]) + '\n')
-        logfile.write('\n' + '-' * 50 + '\n')
-        logfile.write('-' * 50 + '\n')
-        logfile.write('[Features]' + str(r_start) + '\n')
-        logfile.write('[r_start]' + str(r_stop) +  ' Kpc\n')
-        logfile.write('[r_stop]' + str() +  ' Kpc\n')
-        logfile.write('[deg_start]' + str(deg_start) +  ' deg\n')
-        logfile.write('[deg_stop]' + str(deg_end) +  ' deg\n')
+        logfile.write('\n' + '-' * 70 + '\n')
+        logfile.write('-' * 70 + '\n')
+        logfile.write('[Features]            : ' +
+                      str(len(master_dict.keys())) + '\n')
+        logfile.write('[r_start]             : ' + str(r_start) + ' Kpc\n')
+        logfile.write('[r_stop]              : ' + str(r_stop) + ' Kpc\n')
+        logfile.write('[deg_start]           : ' + str(deg_start) + ' deg\n')
+        logfile.write('[deg_stop]            : ' + str(deg_end) + ' deg\n')
+        logfile.write('[xbox_min_value]      : ' + str(xbox_min_value) + '\n')
+        logfile.write('[percent]             : ' + str(percent) + ' %\n')
+        logfile.write('[annulus_degree_step] : ' +
+                      str(annulus_degree_step) + ' degrees\n')
+        reports = 0
         for f_id in master_dict.keys():
+            if reports > 25 or master_dict[f_id]['nboxes'] < 10:
+                continue
+            reports += 1
             feature = master_dict[f_id]
-            logfile.write('\n' + '-' * 50 + '\n')
+            logfile.write('\n' + '-' * 70 + '\n')
             logfile.write('[feature number: ' + str(f_id) + ' ]\n')
             for key in feature.keys():
                 if key == 'points':
                     continue
-                logfile.write('  -->' + key + ' : ' +
-                              str(feature[key]) + '\n')
+                if key == 'sats_book':
+                    logfile.write('\n  ---------------------\n')
+                    logfile.write('        SATIDS\n\n')
+                    for satid in feature['sats_book'].keys():
+                        if not feature['sats_book'][satid]:
+                            continue
+                        logfile.write('  -> ' + str(satid) + ' : ' + str(feature['sats_book'][satid]) + ' : ' + str(
+                            round((1e2 * feature['sats_book'][satid]) / float(feature['nstars_total']), 2)) + ' %' + '\n')
+                    logfile.write('\n  ---------------------\n')
+                else:
+                    logfile.write('  -->' + key + ' : ' +
+                                  str(feature[key]) + '\n')

@@ -100,7 +100,7 @@ def table_merge():
         print(bin_table.info)
         bin_table.keep_columns(
             ['x_int', 'y_int', 'Xbox', 't_accretion', 'Rads', 'Phi', 'R_kpc'])
-        bin_table.remove_rows(np.nonzero(bin_table['Xbox'] < xbox_min_value))
+        #bin_table.remove_rows(np.nonzero(bin_table['Xbox'] < xbox_min_value))
         bin_table.add_column(Column(data=np.rad2deg(bin_table['Phi']), name='Degree', description='degrees', dtype=np.float16))
         print(bin_table.info(['attributes', 'stats']))
         bin_table.pprint(max_lines=25, max_width=window_size()[
