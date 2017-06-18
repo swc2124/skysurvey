@@ -1,28 +1,21 @@
 from __future__ import division, absolute_import, print_function
-
 import os
 import sys
 import ConfigParser
 from time import sleep as _sleep
 from collections import OrderedDict
-
 import skysurvey
 from skysurvey.new_config import SYS_CFG_FNAME
-
 from matplotlib import pyplot as plt
-
 from astropy.table import Table
 from astropy.table import Column
-
 from astropy.units import kiloparsec
 from astropy.units import radian
 from astropy.units import degree
 from astropy.units import gigayear
 from astropy.units import ABmag
 from astropy.units import mag
-
 import numpy as np
-
 
 # Table directory names and paths.
 sys_config_fh = os.path.join(os.path.dirname(
@@ -36,7 +29,6 @@ table_dir = Config.get('PATH', 'table_dir')
 table_dirs_names = [name for name in os.listdir(table_dir)
                     if os.path.isdir(os.path.join(table_dir, name))
                     if not name.startswith('.')]
-
 
 def _plot(feat_dict):
     if feat_dict['nboxes'] < 15:
@@ -77,18 +69,15 @@ def _plot(feat_dict):
         y = [b for a, b in list(points)]
         ax.scatter(x, y)
         plot_fh = feat_dict['plot_fh']
-
         try:
             fig.savefig(plot_fh)
         except:
             pass
         plt.close()
         return feat_dict
-
     except TypeError:
         plt.close()
         return feat_dict
-
 
 def _plot_halo(table):
     print('plotting', table.meta['halo'])
@@ -117,9 +106,7 @@ def _plot_halo(table):
         fig.savefig(plot_fh)
     plt.close()
 
-
 def merge_heavy(f_dict):
-
     for f_id in f_dict.keys():
         feature = f_dict[f_id]
         if not 'points' in feature.keys():
@@ -129,8 +116,8 @@ def merge_heavy(f_dict):
         r_in = feature['r_in']
         r_out = feature['r_out']
         r_center = r_in + ((r_out - r_in) / 2.0)
-        deg0 = feature['degree0'] - 1.0
-        deg1 = feature['degree1'] + 1.0
+        deg0 = feature['degree0'] - 0.5
+        deg1 = feature['degree1'] + 0.5
         for _f_id in f_dict.keys():
             if _f_id <= f_id:
                 continue
@@ -174,7 +161,6 @@ def merge_heavy(f_dict):
                 sys.stdout.flush()
         #f_dict[f_id] = _plot(f_dict[f_id])
     return f_dict
-
 
 def merge(f_dict):
     keys = f_dict.keys()
@@ -220,7 +206,6 @@ def merge(f_dict):
         #f_dict[f_id] = _plot(f_dict[f_id])
     return f_dict
 
-
 def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
     sys.stdout.write('\nstarting feature number: ' + str(plt_num))
     feature = {
@@ -237,9 +222,7 @@ def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
         'halo': halo,
         'feature_id': plt_num,
         'sats_book': sat_book}
-
     return feature
-
 
 def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
     superset = False
@@ -262,17 +245,16 @@ def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
         if point in unknown_points:
             fdict['nstars_total'] += 1
             added += 1
-            fdict['sats_book'][sats[i]] +=1
+            fdict['sats_book'][sats[i]] += 1
     fdict['points'].update(pts)
     fdict['nboxes'] = len(fdict['points'])
     if not superset:
-        sys.stdout.write('\nadded ' + str(added) + ' out of ' + str(len(pts)) +
-                         ' stars to feature ' + str(fdict['feature_id']) )
+        sys.stdout.write('added ' + str(added) + ' out of ' + str(len(pts)) +
+                         ' stars to feature ' + str(fdict['feature_id']) + '\n')
     if superset and added:
         sys.exit(1)
     sys.stdout.flush()
     return fdict
-
 
 def count_satids(sats, sats_book):
     sats = sats.tolist()
@@ -283,18 +265,15 @@ def count_satids(sats, sats_book):
 table_dirs = {}
 for name in table_dirs_names:
     table_dirs[name] = os.path.join(table_dir, name)
-
 percent = 0.1  # 10% of radius
 annulus_degree_step = 1  # Within 1 degree
-xbox_min_value = 7.0
+xbox_min_value = 10.0
 filenames = os.listdir(table_dirs['merged_tables'])
 filenames.reverse()
-
 for name in filenames:
-
     table_fh = os.path.join(table_dirs['merged_tables'], name)
     table = Table.read(table_fh, path='data')
-    #table = table[::1000]
+    table = table[::10]
     table.remove_rows(np.nonzero(table['Xbox'] < xbox_min_value))
     halo = table.meta['halo']
     _plot_halo(table)
@@ -303,19 +282,14 @@ for name in filenames:
     r_start = int(table['Rads'].min())
     r_stop = int(table['Rads'].max())
     cycle = 0
-
-
     for i, annulus in enumerate(range(r_start, r_stop, 1)):
-
         cycle += 1
         region = annulus * 0.1
         r_in = annulus - region
         r_out = annulus + region
         deg_start = table['Degree'].min()
         deg_end = table['Degree'].max()
-
         for degree in np.linspace(deg_start, deg_end, 360):
-
             lims = np.nonzero(
                 np.logical_and(
                     np.logical_and(
@@ -329,17 +303,14 @@ for name in filenames:
                          (table['y_int'][lims]).tolist())
             satids = table['satids'][lims]
             xbox_values = table['Xbox'][lims]
-
             m5 = ' [nothing happend] '
             if n_boxes:
-
                 if not feature_id in master_dict.keys():
                     sats_book = {}
                     for satid in table.meta['satids']:
                         sats_book[satid] = 0
                     feature_id += 1
                     # new_feature(r0, r1, d0, d1, halo, plt_num, points=[0],
-                    # xboxes=np.array([0]))
                     master_dict[feature_id] = new_feature(
                         r_in,
                         r_out,
@@ -362,24 +333,20 @@ for name in filenames:
                             break
                     if known_feature:
                         break
-
                 if not known_feature:
-
                     for unknown_point in set(points):
-
                         x0, y0 = unknown_point
                         known_points = master_dict[feature_id]['points']
                         for known_point in known_points:
                             x1, y1 = known_point
                             distance = np.sqrt(
                                 np.square(x1 - x0) + np.square(y1 - y0))
-                            if distance < 2.0:
+                            if distance < 1.5:
                                 m5 = '[current feature] '
                                 current_feature = True
                                 break
                         if current_feature:
                             break
-
                 if current_feature:
                     master_dict[feature_id] = add_to_feature(
                         master_dict[feature_id],
@@ -389,7 +356,6 @@ for name in filenames:
                         points,
                         xbox_values,
                         satids)
-
                 elif known_feature:
                     # add_to_feature(fdict, r1, deg0, deg1, pts, xbx)
                     master_dict[known_feat_id] = add_to_feature(
@@ -417,10 +383,8 @@ for name in filenames:
                         points,
                         xbox_values,
                         count_satids(satids, sats_book))
-
                     m5 = '[else started feature] '
                     master_dict = merge(master_dict)
-
             msg0 = '\r\r[ ' + halo + ' ] '
             msg1 = '[ r:' + str(annulus) + ' Kpc ] '
             msg2 = '[ id: ' + str(feature_id) + ' ] '
@@ -432,37 +396,31 @@ for name in filenames:
         if m5 == ' [nothing happend] ':
             continue
         master_dict = merge(master_dict)
-        master_dict = merge_heavy(master_dict)
-
         if len(master_dict.keys()) > 100:
             master_dict = merge(master_dict)
             master_dict = merge(master_dict)
-
-        if len(master_dict.keys()) > 1000:
-            master_dict = merge_heavy(master_dict)
-            master_dict = merge_heavy(master_dict)
-
-    if len(master_dict.keys()) > 20:
-        master_dict = merge_heavy(master_dict)
-        master_dict = merge_heavy(master_dict)
-        master_dict = merge_heavy(master_dict)
-        master_dict = merge_heavy(master_dict)
-        master_dict = merge_heavy(master_dict)
-
-    # resort_dict(master_dict)
     for key in master_dict.keys():
         master_dict[key] = _plot(master_dict[key])
-
     logfile_fh = os.path.join(
         Config.get('PATH', 'plot_dir'),
         'groupfinder_testplots',
         halo + '_logfile')
-
     with open(logfile_fh, 'w') as logfile:
         logfile.write('\n' + '-' * 70 + '\n')
-
         for key in table.meta.keys():
-            logfile.write('[table]' + key + ': ' + str(table.meta[key]) + '\n')
+            if key == 'satids':
+                logfile.write(
+                    ' | ----------------------------------------------------------- \n')
+                logfile.write(' | [table] ' + key + '\n')
+                lines = np.array_split(np.asarray(table.meta['satids']), 15)
+                for line in lines:
+                    l = line.tolist()
+                    logfile.write(' | ' + str(l) + '\n')
+                logfile.write(
+                    ' | ----------------------------------------------------------- \n')
+            else:
+                logfile.write('[table] ' + key + ': ' +
+                              str(table.meta[key]) + '\n')
         logfile.write('\n' + '-' * 70 + '\n')
         logfile.write('-' * 70 + '\n')
         logfile.write('[Features]            : ' +
@@ -492,9 +450,15 @@ for name in filenames:
                     for satid in feature['sats_book'].keys():
                         if not feature['sats_book'][satid]:
                             continue
-                        logfile.write('  -> ' + str(satid) + ' : ' + str(feature['sats_book'][satid]) + ' : ' + str(
-                            round((1e2 * feature['sats_book'][satid]) / float(feature['nstars_total']), 2)) + ' %' + '\n')
+                        percentage = round(
+                            (1e2 * feature['sats_book'][satid]) / float(feature['nstars_total']), 2)
+                        if percentage > 75.0:
+                            logfile.write('  ->[' + str(satid) + ']: ' + str(feature['sats_book'][
+                                          satid]) + '         :' + str(percentage) + ' %' + '\n')
+                        else:
+                            logfile.write('  -> ' + str(satid) + ' : ' + str(feature['sats_book'][
+                                          satid]) + '         :' + str(percentage) + ' %' + '\n')
                     logfile.write('\n  ---------------------\n')
                 else:
-                    logfile.write('  -->' + key + ' : ' +
+                    logfile.write('  --> ' + key + ' : ' +
                                   str(feature[key]) + '\n')

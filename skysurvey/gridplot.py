@@ -75,7 +75,7 @@ def sqr_arcmin(d_Mpc=None):
 
     D = d_Mpc * 1e6
 
-    return square(3437.75 * (2 * (arctan((d / (2 * D))))))
+    return square(3437.75 * (2.0 * (arctan((d / (2.0 * D))))))
 
 
 def _Grid_list(_Grid_path=None, _d_Mpc=None, _f_type=None):

@@ -147,42 +147,57 @@ def _spin(halo, _m_lims=None, _distance_mpc=None, _filter_type=None, table=True)
     print('done')
 
     if table:
+
         print('starting table')
         d_table = Table()
-        d_table.meta['spinbin_creation_time'] = time.ctime()
+        d_table.meta['spin_bin_creation_time'] = time.ctime()
+        d_table.meta['grid_fh'] = filename
         d_table.meta['halo'] = halo
         d_table.meta['abs_mag_limit'] = str(round(abs_mag_limit, 2))
-        d_table.meta['m_lims'] = _m_lims
-        d_table.meta['d_mpc'] = _distance_mpc
-        d_table.meta['f_type'] = _filter_type
+        d_table.meta['m_lims'] = m_lims
+        d_table.meta['d_mpc'] = d_mpc
+        d_table.meta['f_type'] = f_type
         d_table.meta['satids'] = unique(satids).tolist()
+        d_table.meta['satid_start'] = str(satids.min())
+        d_table.meta['satid_end'] = str(satids.max())
         d_table.meta['n_sats'] = len(unique(satids))
 
+        print('table created')
+        for k in d_table.meta.keys():
+            print('  --> ', k, ':', d_table.meta[k])
+        print('loading column data')
         d_table.add_columns([
-            Column(data=ab_mag_arr[d_limits], name='ab_mag_arr', description=display(ab_mag_arr[d_limits])),
-            Column(data=app_mags[d_limits], description=display(app_mags[d_limits])),
-            Column(data=r_px, name='px', description=display(r_px)),
-            Column(data=r_py, name='py', description=display(r_py)),
-            Column(data=r_pz, name='pz', description=display(r_pz)),
-            Column(data=integer_x_arr, name='integer_x_arr', description=display(integer_x_arr)),
-            Column(data=intiger_y_arr, name='intiger_y_arr', description=display(intiger_y_arr)),
-            Column(data=integer_x_arr, name='X_idx', description='copy of x_int'),
-            Column(data=intiger_y_arr, name='Y_idx', description='copy of y_int'),
-            Column(data=proj_rads, name='proj_rads', description=display(proj_rads)),
-            Column(data=satids, name='satids', description=display(satids))
+            Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
+            Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
+            Column(data=r_px.astype(float16), name='r_px', description=display(r_px), unit='kiloparsec'),
+            Column(data=r_py.astype(float16), name='r_py', description=display(r_py), unit='kiloparsec'),
+            Column(data=r_pz.astype(float16), name='r_pz', description=display(r_pz), unit='kiloparsec'),
+            Column(data=integer_x_arr.astype(uint16), name='x_int', unit='int16'),
+            Column(data=intiger_y_arr.astype(uint16), name='y_int', unit='int16'),
+            Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16')
         ])
+        print('column data loaded')
+        for k in d_table.keys():
+            print('  -->', k, ':', d_table[k].description)
 
         table_save_path = os.path.join(Config.get(
             'PATH', 'table_dir'), 'spinbin_output')
+        print('save path :', table_save_path)
         if not os.path.isdir(table_save_path):
+            print('making new dir:', table_save_path)
             os.mkdir(table_save_path)
+            print('done')
+
         table_fh = os.path.join(
             table_save_path, halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_table.hdf5')
-
+        print('table file handel:', table_fh)
         d_table.meta['spinbin_output_fh'] = table_fh
-        d_table.write(table_fh, format='hdf5',
-                      path='data', compression=True,
-                      overwrite=True, append=True, serialize_meta=True)
+        print('writing table')
+        d_table.write(table_fh, format='hdf5', path='data', compression=True,
+                      overwrite=True, serialize_meta=True)
+        d_table.pprint(max_lines=25, max_width=window_size()[
+            0], show_name=True, show_unit=True, show_dtype=True, align=None)
+        print('done')
         print(d_table.info())
 
     return bf(integer_x_arr, intiger_y_arr, ab_mag_arr, app_mags, proj_rads, _m_lims, satids)
@@ -314,14 +329,14 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
                 print('  --> ', k, ':', d_table.meta[k])
             print('loading column data')
             d_table.add_columns([
-                Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits])),
-                Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits])),
-                Column(data=px.astype(float16), name='px', description=display(px)),
-                Column(data=py.astype(float16), name='py', description=display(py)),
-                Column(data=pz.astype(float16), name='pz', description=display(pz)),
-                Column(data=integer_x_arr.astype(uint16), name='x_int'),
-                Column(data=intiger_y_arr.astype(uint16), name='y_int'),
-                Column(data=satids.astype(uint16), name='satids', description=display(satids))
+                Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
+                Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
+                Column(data=px.astype(float16), name='px', description=display(px), unit='kiloparsec'),
+                Column(data=py.astype(float16), name='py', description=display(py), unit='kiloparsec'),
+                Column(data=pz.astype(float16), name='pz', description=display(pz), unit='kiloparsec'),
+                Column(data=integer_x_arr.astype(uint16), name='x_int', unit='int16'),
+                Column(data=intiger_y_arr.astype(uint16), name='y_int', unit='int16'),
+                Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16')
             ])
             print('column data loaded')
             for k in d_table.keys():
