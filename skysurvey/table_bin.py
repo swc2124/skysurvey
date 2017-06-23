@@ -134,14 +134,22 @@ def table_merge():
         print('done')
 
 
-def table_bin(radius_start=5, radius_end=210, step=1, percent=0.1):
-    grid_dir = Config.get('PATH', 'grid_dir')
-    table_dir = Config.get('PATH', 'table_dir')
+def table_bin(size=None, radius_start=0, radius_end=220, step=1, percent=0.1):
+    if size == None:
+        size = Config.get('grid_options', 'size')
+    grid_dir = os.path.join(Config.get('PATH', 'grid_dir'), size)
+    table_dir = os.path.join(Config.get('PATH', 'table_dir'),'table_bin_output', str(size))
+    if not os.path.isdir(table_dir):
+        os.mkdir(table_dir)
     grid_files = os.listdir(grid_dir)
     for grid_fh in grid_files:
         if not grid_fh.endswith('.npy'):
+
             continue
         halo, d_mpc, f_type, ending = grid_fh.split(os.path.sep)[-1].split('_')
+        if not halo == 'halo08':
+            continue
+
         d_mpc = float(d_mpc[:3])
         halo_number = int(halo[-2:])
         _grid_fh_ = os.path.join(grid_dir, grid_fh)
@@ -155,13 +163,14 @@ def table_bin(radius_start=5, radius_end=210, step=1, percent=0.1):
 
         table_fh = str(d_mpc) + 'Mpc_' + f_type + \
             '_' + halo + '_table_bin_table'
-        target_dir = os.path.join(table_dir, 'table_bin_output')
+        target_dir = table_dir
         file_name = table_fh + '.hdf5'
         if not os.path.isdir(target_dir):
             os.mkdir(target_dir)
         fh = os.path.join(target_dir, file_name)
         table = Table()
         table.meta['_grid_fh_'] = _grid_fh_
+        table.meta['grid_shape'] = GRID.shape
         table.meta['halo'] = halo
         table.meta['table_dir'] = table_dir
         table.meta['f_type'] = f_type
@@ -242,12 +251,125 @@ def table_bin(radius_start=5, radius_end=210, step=1, percent=0.1):
                            np.float16) * np.float16(np.log10(len(np.nonzero(BOXES >= 1.0)[0]))), name='Log10(N_boxes)_full', unit='float16'),
                        Column(data=np.ones(n_boxes).astype(np.uint32) * len(np.nonzero(BOXES >= 1.0)[0]), name='N_boxes_full', unit='uint32')]
 
-            if not len(table):
-                table.add_columns(columns)
-            else:
-                temp_table = Table()
-                temp_table.add_columns(columns)
-                table = vstack([table, temp_table])
+            temp_table = Table()
+            temp_table.add_columns(columns)
+            table = vstack([table, temp_table])
+
+            if VERBOSE:
+                msg = '\r\r[' + halo + '] radius: ' + str(radius_Kpc + 1) + '/' + str(
+                    radius_end) + ' Kpc - [ ' + str(round(1e2 * (1.0 * (radius_Kpc - radius_start + 1) / (1.0 * (radius_end - radius_start))), 2)) + '% ] '
+                sys.stdout.write(msg)
+                sys.stdout.flush()
+                #print(radius_Kpc, n_boxes, len(np.unique(table['R_kpc'])))
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+
+        table.meta['radius_start'] = str(radius_start)
+        table.meta['radius_end'] = str(radius_end)
+        table.meta['log_n_stars_in_grid'] = str(np.log10(n_stars_in_grid))
+        table.write(fh, format='hdf5', path='data',
+                    overwrite=True, serialize_meta=True)
+        table.pprint(max_lines=25, max_width=window_size()[
+            0], show_name=True, show_unit=True, show_dtype=True, align=None)
+        sys.stdout.write('\n')
+        sys.stdout.flush()
+        if VERBOSE:
+            sys.stdout.write(
+                msg + '[' + halo.upper() + ' DONE] [' + time.ctime() + '] - saved to:' + fh + '\n')
+            sys.stdout.flush()
+
+def table_binlite(size=None, radius_start=0, radius_end=220, step=1, percent=0.1):
+    if size == None:
+        size = Config.get('grid_options', 'size')
+    grid_dir = os.path.join(Config.get('PATH', 'grid_dir'), str(size))
+    table_dir = os.path.join(Config.get('PATH', 'table_dir'),'table_bin_output', str(size))
+    if not os.path.isdir(table_dir):
+        os.mkdir(table_dir)
+    grid_files = os.listdir(grid_dir)
+    for grid_fh in grid_files:
+        if not grid_fh.endswith('.npy'):
+
+            continue
+        halo, d_mpc, f_type, ending = grid_fh.split(os.path.sep)[-1].split('_')
+        if not halo == 'halo08':
+            continue
+
+        d_mpc = float(d_mpc[:3])
+        halo_number = int(halo[-2:])
+        _grid_fh_ = os.path.join(grid_dir, grid_fh)
+
+        _grid_ = np.load(_grid_fh_)
+        GRID = fix_rslice(_grid_)
+        center = GRID.shape[0] / 2.0
+        n_stars_total = len(np.load(os.path.join(
+            Config.get('PATH', 'halo_dir'), halo, 'px.npy')))
+        n_stars_in_grid = GRID[:, :, 0].sum()
+
+        table_fh = str(d_mpc) + 'Mpc_' + f_type + \
+            '_' + halo + '_table_bin_table'
+        target_dir = table_dir
+        file_name = table_fh + '.hdf5'
+        if not os.path.isdir(target_dir):
+            os.mkdir(target_dir)
+        fh = os.path.join(target_dir, file_name)
+        table = Table()
+        table.meta['_grid_fh_'] = _grid_fh_
+        table.meta['grid_shape'] = GRID.shape
+        table.meta['halo'] = halo
+        table.meta['table_dir'] = table_dir
+        table.meta['f_type'] = f_type
+        table.meta['d_mpc'] = d_mpc
+        table.meta['table_bin_output_fh'] = table_fh
+        table.meta['full_path'] = fh
+        table.meta['table_bin_creation_time'] = time.ctime()
+
+        for radius_Kpc in range(radius_start, radius_end, step):
+            region = (radius_Kpc * percent)
+            r_in = radius_Kpc - region
+            r_out = radius_Kpc + region
+
+            selected_boxes = np.nonzero(np.logical_and(
+                GRID[:, :, 14] < r_out, GRID[:, :, 14] >= r_in))
+            #print(selected_boxes )
+            x, y = selected_boxes
+
+            PHI = np.arctan2(y - center, x - center)
+            BOXES = GRID[:, :, 0][selected_boxes]
+            B_RADS = GRID[:, :, 14][selected_boxes]
+            AGE = GRID[:, :, 6][selected_boxes]
+            mu = BOXES.mean()
+            sigma_mu = mu
+            XBOX = (BOXES - mu) / sigma_mu
+
+            n_boxes = len(BOXES)
+
+            columns = [Column(data=BOXES.astype(np.float32), name='Boxes', description='Number of stars per grid box'),
+
+                       Column(data=np.divide(BOXES, np.float64(n_boxes)).astype(np.float32),
+                              name='Percent_Boxes', description='Boxes / n_boxes'),
+
+                       Column(data=np.log10(BOXES).astype(np.float16), name='LogBoxes',
+                              description='Log(number of stars) per grid box'),
+                       Column(
+                           data=XBOX.astype(np.float16), name='Xbox', description='(Boxes - mu) / sigma where sigma=Boxes.mean()=mu'),
+                       Column(
+                           data=np.log10(XBOX.astype(np.float16)), name='LogXbox', description='Log10((Boxes - mu) / sigma) where sigma=Boxes.mean()=mu'),
+                       Column(data=PHI.astype(np.float16), name='Phi',
+                              description='arctan(y - center / x - center)', unit='radian'),
+                       Column(data=B_RADS.astype(np.uint16), name='Rads',
+                              description='Radius of box in Kpc', unit='kiloparsec'),
+                       Column(data=AGE.astype(np.float16), name='t_accretion',
+                              description='Time since accretion Gyr', unit='gigayear'),
+                       Column(data=x.astype(np.uint16), name='x_int',
+                              description='x indices on the grid', unit='uint16'),
+                       Column(data=y.astype(np.uint16), name='y_int',
+                              description='y ints for merging table', unit='uint16'),
+                       Column(data=np.ones(n_boxes).astype(np.uint16) * radius_Kpc,
+                              name='R_kpc', description='Selected radius in Kpc', unit='kiloparsec'),]
+
+            temp_table = Table()
+            temp_table.add_columns(columns)
+            table = vstack([table, temp_table])
 
             if VERBOSE:
                 msg = '\r\r[' + halo + '] radius: ' + str(radius_Kpc + 1) + '/' + str(

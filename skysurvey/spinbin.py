@@ -279,7 +279,9 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
         f_type {[type]} -- [description] (default: {filter_type})
     '''
     if path == None:
-        path = Config.get('PATH', 'grid_dir')
+        path = os.path.join(Config.get('PATH', 'grid_dir'), Config.get('grid_options', 'size'))
+        if not os.path.isdir(path):
+            os.mkdir(path)
     if m_lims == None:
         m_lims = asarray([float(lim) for name, lim in Config.items(
             'Default_magnitude_limits')], dtype=float64)
@@ -336,6 +338,7 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
                 Column(data=pz.astype(float16), name='pz', description=display(pz), unit='kiloparsec'),
                 Column(data=integer_x_arr.astype(uint16), name='x_int', unit='int16'),
                 Column(data=intiger_y_arr.astype(uint16), name='y_int', unit='int16'),
+                Column(data=proj_rads.astype(float16), name='r_proj', unit='kpc'),
                 Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16')
             ])
             print('column data loaded')
@@ -350,6 +353,9 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
                 os.mkdir(table_save_path)
                 print('done')
 
+            table_dir = os.path.join(table_save_path, str(Config.get('grid_options', 'size')))
+            if not os.path.isdir(table_dir):
+                os.mkdir(table_dir)
             table_fh = os.path.join(
                 table_save_path, halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_table.hdf5')
             print('table file handel:', table_fh)

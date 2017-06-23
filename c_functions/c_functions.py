@@ -274,6 +274,8 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
                     # Satid.
                     grid[px[i], py[i], 7] += sat_number
 
+                    
+
                 # If the star is bound [1].
                 else:
                     bound += 1
@@ -288,6 +290,9 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
                     grid[px[i], py[i], 12] += sat_number
                     if not sat_bound:
                         bad += 1
+
+                grid[px[i], py[i], 13] += 1
+                grid[px[i], py[i], 14] += r_proj[i]
  
     # Slices that need to be divided by the number of stars in each bin.
     idx_1, idx_2 = np.nonzero(grid[:, :, 0] > 0.)
@@ -295,12 +300,16 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
     grid[idx_1, idx_2, 2] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 6] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 7] /= grid[idx_1, idx_2, 0]
+    grid[idx_1, idx_2, 14] /= grid[idx_1, idx_2, 0]
 
     idx_1, idx_2 = np.nonzero(grid[:, :, 8] > 0.)
     grid[idx_1, idx_2, 9] /= grid[idx_1, idx_2, 8]
     grid[idx_1, idx_2, 10] /= grid[idx_1, idx_2, 8]
     grid[idx_1, idx_2, 11] /= grid[idx_1, idx_2, 8]
     grid[idx_1, idx_2, 12] /= grid[idx_1, idx_2, 8]
+
+    #idx_1, idx_2 = np.nonzero(grid[:, :, 13] > 0.)
+    #grid[idx_1, idx_2, 14] /= grid[idx_1, idx_2, 13]
 
     print('\n-------------------------------')
     print('    bound stars: ', bound)

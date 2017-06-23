@@ -31,7 +31,7 @@ table_dirs_names = [name for name in os.listdir(table_dir)
                     if not name.startswith('.')]
 
 def _plot(feat_dict):
-    if feat_dict['nboxes'] < 15:
+    if feat_dict['nboxes'] < 25:
         if os.path.isfile(feat_dict['plot_fh'] + '.png'):
             os.remove(feat_dict['plot_fh'] + '.png')
         return feat_dict
@@ -341,7 +341,7 @@ for name in filenames:
                             x1, y1 = known_point
                             distance = np.sqrt(
                                 np.square(x1 - x0) + np.square(y1 - y0))
-                            if distance < 1.5:
+                            if distance < .5:
                                 m5 = '[current feature] '
                                 current_feature = True
                                 break
@@ -439,6 +439,8 @@ for name in filenames:
                 continue
             reports += 1
             feature = master_dict[f_id]
+            if feature[f_id]['nboxes'] < 25:
+                continue
             logfile.write('\n' + '-' * 70 + '\n')
             logfile.write('[feature number: ' + str(f_id) + ' ]\n')
             for key in feature.keys():
