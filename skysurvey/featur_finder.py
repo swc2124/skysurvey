@@ -9,13 +9,12 @@ from skysurvey.new_config import SYS_CFG_FNAME
 from matplotlib import pyplot as plt
 from astropy.table import Table
 from astropy.table import Column
-from astropy.units import kiloparsec
-from astropy.units import radian
-from astropy.units import degree
-from astropy.units import gigayear
-from astropy.units import ABmag
-from astropy.units import mag
 import numpy as np
+
+
+RECORD_TABLE = Table()
+names = ['r_in', 'r_out', 'degree0', 'degree1', 'nboxes', 'nstars_total', 'max_xboxvalue', 'min_xboxvalue', 'halo', 'plot_fh']
+dtypes = ['f', 'f', 'f', 'f', 'i', 'i', 'f', 'f', 'S10', 'str']
 
 # Table directory names and paths.
 sys_config_fh = os.path.join(os.path.dirname(
