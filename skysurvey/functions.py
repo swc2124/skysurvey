@@ -23,7 +23,7 @@ Config = ConfigParser.ConfigParser()
 Config.read(config_fh)
 
 
-def calculate_app_mag(cutoff, t_fov=2000.0, t_exp=1000.0):
+def calculate_app_mag(cutoff, t_fov=1000.0, t_exp=1000.0):
     '''
     Description : helper function for <calculate_abs_mag>.
             maybe will be expanded later
