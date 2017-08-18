@@ -136,21 +136,22 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
     #print('converting px and py arrays to integers')
 
     print(line)
-    print('\n', '[ integerize ]', '\n')
+    print('[ integerize ]', '\n')
     
-    print('[ before ] px min, mean, max : ', x.min(), ',', x.mean(), ',', x.max())
+    print('[before ] px min, mean, max : ', x.min(), ',', x.mean(), ',', x.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] x1 = x.round(3)
     x1 *= scale
     x1 += center
     x2 = x1.astype(np.int32)
-    print(' [ after ] px min, mean, max : ', x2.min(), ',', x2.mean(), ',', x2.max())
+    print('[ after ] px min, mean, max : ', x2.min(), ',', x2.mean(), ',', x2.max())
 
-    print('[ before ] py min, mean, max : ', y.min(), ',', y.mean(), ',', y.max())
+    print('[before ] py min, mean, max : ', y.min(), ',', y.mean(), ',', y.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] y1 = y.round(3)
     y1 *= scale
     y1 += center
     y2 = y1.astype(np.int32)
-    print(' [ after ] py min, mean, max : ', y2.min(), ',', y2.mean(), ',', y2.max())
+    print('[ after ] py min, mean, max : ', y2.min(), ',', y2.mean(), ',', y2.max())
+    print(line)
     
     return x2, y2
 

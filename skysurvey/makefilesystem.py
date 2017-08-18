@@ -98,30 +98,32 @@ def fsinit():
         if not halo_fh in halos:
             print('    ' + 'skipping ' + halo_fh)
             continue
-        else:
-            new_path = join(Config.get('PATH', 'halo_dir'), halo_fh)
-            if not os.path.isdir(new_path):
-                print('    ' + 'Making PATH: [' + halo_fh + ']', new_path)
-                os.mkdir(new_path)
-            else:
-                print('    ' + 'PATH Exists: [' + halo_fh + ']', new_path)
 
-            data_keys = []
-            for k in [value for item in Config.items('Data_keys') for value in item[1].split(',')]:
-                if not os.path.exists(join(new_path, k + '.npy')):
-                    data_keys.append(k)
-                else:
-                    print('    ' + 'Key Exists: [' + k + ']')
-            if data_keys:
-                print('    ' + 'loading and saving new keys')
-                halo_array = ebf.read(join(halo_ebf_dir, _halo))
-                for data_key in data_keys:
-                    key_fh = join(new_path, data_key)
-                    print('    --> ' + data_key + ': ' + key_fh)
-                    np.save(key_fh, halo_array[data_key][
-                            ::Config.getint('Data_cut', 'cut')])
+        print('    ' + 'starting ' + halo_fh)
+        new_path = join(Config.get('PATH', 'halo_dir'), halo_fh)
+        if not os.path.isdir(new_path):
+            print('    ' + 'Making PATH: [' + halo_fh + ']', new_path)
+            os.mkdir(new_path)
+        else:
+            print('    ' + 'PATH Exists: [' + halo_fh + ']', new_path)
+
+        data_keys = []
+        for k in [value for item in Config.items('Data_keys') for value in item[1].split(',')]:
+            if not os.path.exists(join(new_path, k + '.npy')):
+                data_keys.append(k)
+                print('    ' + 'Adding Key: [' + k + ']')
             else:
-                print('    ' + 'nothing to do here')
-            print('    ' + 'done' + '\n')
+                print('    ' + 'Key Exists: [' + k + ']')
+        if data_keys:
+            print('    ' + 'loading and saving new keys')
+            halo_array = ebf.read(join(halo_ebf_dir, _halo))
+            for data_key in data_keys:
+                key_fh = join(new_path, data_key)
+                print('    --> ' + data_key + ': ' + key_fh)
+                np.save(key_fh, halo_array[data_key][
+                        ::Config.getint('Data_cut', 'cut')])
+        else:
+            print('    ' + 'nothing to do here')
+        print('    ' + 'done' + '\n')
 
     print('\n[ process complete ]\n')

@@ -31,6 +31,7 @@ from numpy import float16
 from numpy import unique
 
 try:
+    from .functions import load_data_arr
     from .functions import load_ab_mags
     from .functions import load_positions
     from .functions import apparent_magnitude
@@ -39,6 +40,7 @@ try:
     from .new_config import SYS_CFG_FNAME
 
 except ValueError, e:
+    from skysurvey.functions import load_data_arr
     from skysurvey.functions import load_ab_mags
     from skysurvey.functions import load_positions
     from skysurvey.functions import apparent_magnitude
@@ -330,6 +332,7 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
             for k in d_table.meta.keys():
                 print('  --> ', k, ':', d_table.meta[k])
             print('loading column data')
+            # load_data_arr(halo_name, data_key, lim)
             d_table.add_columns([
                 Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
                 Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
@@ -338,8 +341,14 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
                 Column(data=pz.astype(float16), name='pz', description=display(pz), unit='kiloparsec'),
                 Column(data=integer_x_arr.astype(uint16), name='x_int', unit='int16'),
                 Column(data=intiger_y_arr.astype(uint16), name='y_int', unit='int16'),
-                Column(data=proj_rads.astype(float16), name='r_proj', unit='kpc'),
-                Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16')
+                Column(data=proj_rads.astype(float16), name='r_proj', description=display(proj_rads), unit='kpc'),
+                Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16'),
+                Column(data=load_data_arr(halo, 'teff', d_limits).astype(float16), name='teff', unit='Kelvin'),
+                Column(data=load_data_arr(halo, 'feh', d_limits).astype(float16), name='feh',  unit='dex'),
+                Column(data=load_data_arr(halo, 'age', d_limits).astype(float16), name='age',  unit='Gyr'),
+                Column(data=load_data_arr(halo, 'alpha', d_limits).astype(float16), name='alpha'),
+                Column(data=load_data_arr(halo, 'smass', d_limits).astype(float16), name='smass',  unit='Msol'),
+                Column(data=load_data_arr(halo, 'mact', d_limits).astype(float16), name='mact', unit='Msol')
             ])
             print('column data loaded')
             for k in d_table.keys():

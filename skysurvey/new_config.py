@@ -139,7 +139,7 @@ def new_cfg(halo_ebf_path=_my_halos, sys_config_filename=SYS_CFG_FNAME):
         'Data_keys': [
             ('positions', 'px,py,pz'),
             ('mags', 'wfirst-hst_f110w,wfirst-hst_f160w,wfirst-hst_f184,wfirst-hst_f475w,wfirst-hst_f555w,wfirst-hst_f606w,wfirst-hst_f814w,wfirst-hst_h158,wfirst-hst_j129,wfirst-hst_w149,wfirst-hst_y106,wfirst-hst_z087'),
-            ('data', 'teff,age,satid,mact,smass')
+            ('data', 'teff,age,satid,mact,smass,feh,alpha,lum')
         ],
 
         'Data_cut': [

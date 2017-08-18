@@ -134,7 +134,7 @@ def table_merge():
         print('done')
 
 
-def table_bin(size=None, radius_start=0, radius_end=220, step=1, percent=0.1):
+def table_bin(size=None, radius_start=0, radius_end=300, step=1, percent=0.1):
     if size == None:
         size = Config.get('grid_options', 'size')
     grid_dir = os.path.join(Config.get('PATH', 'grid_dir'), size)
@@ -147,8 +147,7 @@ def table_bin(size=None, radius_start=0, radius_end=220, step=1, percent=0.1):
 
             continue
         halo, d_mpc, f_type, ending = grid_fh.split(os.path.sep)[-1].split('_')
-        if not halo == 'halo08':
-            continue
+
 
         d_mpc = float(d_mpc[:3])
         halo_number = int(halo[-2:])
