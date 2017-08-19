@@ -269,7 +269,7 @@ def spinone(halo, path=None, m_lims=None, d_mpc=None, f_type=None):
           '\n---------------------------------\n')
 
 
-def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
+def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite'):
     '''[summary]
 
     [description]
@@ -312,20 +312,20 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
         print(halo + ' saved : ' + filename +
               '\n---------------------------------\n')
 
-        if table:
+        if table == 'normal':
 
             print('starting table')
             d_table = Table()
-            d_table.meta['spin_bin_creation_time'] = time.ctime()
+            #d_table.meta['spin_bin_creation_time'] = time.ctime()
             d_table.meta['grid_fh'] = filename
             d_table.meta['halo'] = halo
-            d_table.meta['abs_mag_limit'] = str(round(abs_mag_limit, 2))
+            d_table.meta['abm_lim'] = str(round(abs_mag_limit, 2))
             d_table.meta['m_lims'] = m_lims
             d_table.meta['d_mpc'] = d_mpc
             d_table.meta['f_type'] = f_type
-            d_table.meta['satids'] = unique(satids).tolist()
-            d_table.meta['satid_start'] = str(satids.min())
-            d_table.meta['satid_end'] = str(satids.max())
+            #d_table.meta['satids'] = unique(satids).tolist()
+            d_table.meta['sat0'] = str(satids.min())
+            d_table.meta['sat1'] = str(satids.max())
             d_table.meta['n_sats'] = len(unique(satids))
 
             print('table created')
@@ -348,6 +348,72 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table=True):
                 Column(data=load_data_arr(halo, 'age', d_limits).astype(float16), name='age',  unit='Gyr'),
                 Column(data=load_data_arr(halo, 'alpha', d_limits).astype(float16), name='alpha'),
                 Column(data=load_data_arr(halo, 'smass', d_limits).astype(float16), name='smass',  unit='Msol'),
+                Column(data=load_data_arr(halo, 'mact', d_limits).astype(float16), name='mact', unit='Msol')
+            ])
+            print('column data loaded')
+            for k in d_table.keys():
+                print('  -->', k, ':', d_table[k].description)
+
+            table_save_path = os.path.join(Config.get(
+                'PATH', 'table_dir'), 'spinbin_output')
+            print('save path :', table_save_path)
+            if not os.path.isdir(table_save_path):
+                print('making new dir:', table_save_path)
+                os.mkdir(table_save_path)
+                print('done')
+
+            table_dir = os.path.join(table_save_path, str(Config.get('grid_options', 'size')))
+            if not os.path.isdir(table_dir):
+                os.mkdir(table_dir)
+            table_fh = os.path.join(
+                table_save_path, halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_table.hdf5')
+            print('table file handel:', table_fh)
+            d_table.meta['spinbin_output_fh'] = table_fh
+            print('writing table')
+            d_table.write(table_fh, format='hdf5', path='data', compression=True,
+                          overwrite=True, serialize_meta=True)
+            d_table.pprint(max_lines=25, max_width=window_size()[
+                0], show_name=True, show_unit=True, show_dtype=True, align=None)
+            print('done')
+            print(d_table.info())
+
+        if table == 'lite':
+
+            print('starting table')
+            d_table = Table()
+            #d_table.meta['spin_bin_creation_time'] = time.ctime()
+            #d_table.meta['grid_fh'] = filename
+            d_table.meta['halo'] = halo
+            d_table.meta['abm_lim'] = str(round(abs_mag_limit, 2))
+            d_table.meta['m_lims'] = [str(i) for i in m_lims.tolist()]
+            d_table.meta['d_mpc'] = d_mpc
+            d_table.meta['f_type'] = f_type
+            #d_table.meta['satids'] = unique(satids).tolist()
+            d_table.meta['sat0'] = str(satids.min())
+            d_table.meta['sat1'] = str(satids.max())
+            d_table.meta['n_sats'] = len(unique(satids))
+
+            print('table created')
+            for k in d_table.meta.keys():
+                print('  --> ', k, ':', d_table.meta[k])
+            print('loading column data')
+            # load_data_arr(halo_name, data_key, lim)
+            d_table.add_columns([
+                #Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
+                Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
+                # need to flip x and y axis
+                Column(data=px.astype(float16), name='py', description=display(px), unit='kiloparsec'),
+                Column(data=py.astype(float16), name='px', description=display(py), unit='kiloparsec'),
+                #Column(data=pz.astype(float16), name='pz', description=display(pz), unit='kiloparsec'),
+                Column(data=integer_x_arr.astype(uint16), name='y_int', unit='int16'),
+                Column(data=intiger_y_arr.astype(uint16), name='x_int', unit='int16'),
+                #Column(data=proj_rads.astype(float16), name='r_proj', description=display(proj_rads), unit='kpc'),
+                Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16'),
+                #Column(data=load_data_arr(halo, 'teff', d_limits).astype(float16), name='teff', unit='Kelvin'),
+                Column(data=load_data_arr(halo, 'feh', d_limits).astype(float16), name='feh',  unit='dex'),
+                Column(data=load_data_arr(halo, 'age', d_limits).astype(float16), name='age',  unit='Gyr'),
+                #Column(data=load_data_arr(halo, 'alpha', d_limits).astype(float16), name='alpha'),
+                #Column(data=load_data_arr(halo, 'smass', d_limits).astype(float16), name='smass',  unit='Msol'),
                 Column(data=load_data_arr(halo, 'mact', d_limits).astype(float16), name='mact', unit='Msol')
             ])
             print('column data loaded')

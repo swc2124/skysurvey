@@ -262,18 +262,18 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
                     
                     # Magnitudes.
                     grid[px[i], py[i], 1] += ab_mags[i]
-                    grid[px[i], py[i], 2] += apparent_mag
-                    if apparent_mag < mlim_min:
-                        grid[px[i], py[i], 3] += 1.0
-                    if apparent_mag < mlim_med:
-                        grid[px[i], py[i], 4] += 1.0
-                    if apparent_mag < mlim_max:
-                        grid[px[i], py[i], 5] += 1.0
+                    #grid[px[i], py[i], 2] += apparent_mag
+                    #if apparent_mag < mlim_min:
+                    #    grid[px[i], py[i], 3] += 1.0
+                    #if apparent_mag < mlim_med:
+                    #    grid[px[i], py[i], 4] += 1.0
+                    #if apparent_mag < mlim_max:
+                    #    grid[px[i], py[i], 5] += 1.0
 
                     # Accretion time (Gyr) of satellite.
-                    grid[px[i], py[i], 6] += sat_age
+                    grid[px[i], py[i], 2] += sat_age
                     # Satid.
-                    grid[px[i], py[i], 7] += sat_number
+                    grid[px[i], py[i], 3] += sat_number
 
                     
 
@@ -281,33 +281,33 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
                 else:
                     bound += 1
                     # Bin stars.
-                    grid[px[i], py[i], 8] += 1.0
+                    #grid[px[i], py[i], 8] += 1.0
                     # Magnitudes.
-                    grid[px[i], py[i], 9] += ab_mags[i]
-                    grid[px[i], py[i], 10] += apparent_mag
+                    #grid[px[i], py[i], 9] += ab_mags[i]
+                    #grid[px[i], py[i], 10] += apparent_mag
                     # Accretion time (Gyr).
-                    grid[px[i], py[i], 11] += sat_age
+                    #grid[px[i], py[i], 11] += sat_age
                     # Satid.
-                    grid[px[i], py[i], 12] += sat_number
+                    #grid[px[i], py[i], 12] += sat_number
                     if not sat_bound:
                         bad += 1
 
-                grid[px[i], py[i], 13] += 1
-                grid[px[i], py[i], 14] += r_proj[i]
+                #grid[px[i], py[i], 13] += 1
+                grid[px[i], py[i], 4] += r_proj[i]
  
     # Slices that need to be divided by the number of stars in each bin.
     idx_1, idx_2 = np.nonzero(grid[:, :, 0] > 0.)
     grid[idx_1, idx_2, 1] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 2] /= grid[idx_1, idx_2, 0]
-    grid[idx_1, idx_2, 6] /= grid[idx_1, idx_2, 0]
-    grid[idx_1, idx_2, 7] /= grid[idx_1, idx_2, 0]
-    grid[idx_1, idx_2, 14] /= grid[idx_1, idx_2, 0]
+    grid[idx_1, idx_2, 3] /= grid[idx_1, idx_2, 0]
+    #grid[idx_1, idx_2, 7] /= grid[idx_1, idx_2, 0]
+    #grid[idx_1, idx_2, 14] /= grid[idx_1, idx_2, 0]
 
-    idx_1, idx_2 = np.nonzero(grid[:, :, 8] > 0.)
-    grid[idx_1, idx_2, 9] /= grid[idx_1, idx_2, 8]
-    grid[idx_1, idx_2, 10] /= grid[idx_1, idx_2, 8]
-    grid[idx_1, idx_2, 11] /= grid[idx_1, idx_2, 8]
-    grid[idx_1, idx_2, 12] /= grid[idx_1, idx_2, 8]
+    #idx_1, idx_2 = np.nonzero(grid[:, :, 8] > 0.)
+    #grid[idx_1, idx_2, 9] /= grid[idx_1, idx_2, 8]
+    #grid[idx_1, idx_2, 10] /= grid[idx_1, idx_2, 8]
+    #grid[idx_1, idx_2, 11] /= grid[idx_1, idx_2, 8]
+    #grid[idx_1, idx_2, 12] /= grid[idx_1, idx_2, 8]
 
     #idx_1, idx_2 = np.nonzero(grid[:, :, 13] > 0.)
     #grid[idx_1, idx_2, 14] /= grid[idx_1, idx_2, 13]
