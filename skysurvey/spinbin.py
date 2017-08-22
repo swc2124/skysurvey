@@ -169,14 +169,22 @@ def _spin(halo, _m_lims=None, _distance_mpc=None, _filter_type=None, table=True)
             print('  --> ', k, ':', d_table.meta[k])
         print('loading column data')
         d_table.add_columns([
-            Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
-            Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
-            Column(data=r_px.astype(float16), name='r_px', description=display(r_px), unit='kiloparsec'),
-            Column(data=r_py.astype(float16), name='r_py', description=display(r_py), unit='kiloparsec'),
-            Column(data=r_pz.astype(float16), name='r_pz', description=display(r_pz), unit='kiloparsec'),
-            Column(data=integer_x_arr.astype(uint16), name='x_int', unit='int16'),
-            Column(data=intiger_y_arr.astype(uint16), name='y_int', unit='int16'),
-            Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16')
+            Column(data=ab_mag_arr[d_limits].astype(
+                float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
+            Column(data=app_mags[d_limits].astype(
+                float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
+            Column(data=r_px.astype(float16), name='r_px',
+                   description=display(r_px), unit='kiloparsec'),
+            Column(data=r_py.astype(float16), name='r_py',
+                   description=display(r_py), unit='kiloparsec'),
+            Column(data=r_pz.astype(float16), name='r_pz',
+                   description=display(r_pz), unit='kiloparsec'),
+            Column(data=integer_x_arr.astype(uint16),
+                   name='x_int', unit='int16'),
+            Column(data=intiger_y_arr.astype(uint16),
+                   name='y_int', unit='int16'),
+            Column(data=satids.astype(uint16), name='satids',
+                   description=display(satids), unit='int16')
         ])
         print('column data loaded')
         for k in d_table.keys():
@@ -281,7 +289,8 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
         f_type {[type]} -- [description] (default: {filter_type})
     '''
     if path == None:
-        path = os.path.join(Config.get('PATH', 'grid_dir'), Config.get('grid_options', 'size'))
+        path = os.path.join(Config.get('PATH', 'grid_dir'),
+                            Config.get('grid_options', 'size'))
         if not os.path.isdir(path):
             os.mkdir(path)
     if m_lims == None:
@@ -299,10 +308,14 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
         print('filename:', filename)
         print('prepairing arrays')
         ab_mag_arr = load_ab_mags(halo)
+
         abs_mag_limit = calculate_abs_mag(distance=d_mpc, _f_type=f_type)
+
         d_limits = find_dlims(ab_mag_arr, asarray(
             [abs_mag_limit], dtype=float64))
+
         app_mags = apparent_magnitude(ab_mag_arr, d_mpc)
+
         px, py, pz = load_positions(halo, d_limits)
         integer_x_arr, intiger_y_arr = integerize(px, py)
         proj_rads = sqrt(square(px) + square(py))
@@ -334,21 +347,36 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
             print('loading column data')
             # load_data_arr(halo_name, data_key, lim)
             d_table.add_columns([
-                Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
-                Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
-                Column(data=px.astype(float16), name='px', description=display(px), unit='kiloparsec'),
-                Column(data=py.astype(float16), name='py', description=display(py), unit='kiloparsec'),
-                Column(data=pz.astype(float16), name='pz', description=display(pz), unit='kiloparsec'),
-                Column(data=integer_x_arr.astype(uint16), name='x_int', unit='int16'),
-                Column(data=intiger_y_arr.astype(uint16), name='y_int', unit='int16'),
-                Column(data=proj_rads.astype(float16), name='r_proj', description=display(proj_rads), unit='kpc'),
-                Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16'),
-                Column(data=load_data_arr(halo, 'teff', d_limits).astype(float16), name='teff', unit='Kelvin'),
-                Column(data=load_data_arr(halo, 'feh', d_limits).astype(float16), name='feh',  unit='dex'),
-                Column(data=load_data_arr(halo, 'age', d_limits).astype(float16), name='age',  unit='Gyr'),
-                Column(data=load_data_arr(halo, 'alpha', d_limits).astype(float16), name='alpha'),
-                Column(data=load_data_arr(halo, 'smass', d_limits).astype(float16), name='smass',  unit='Msol'),
-                Column(data=load_data_arr(halo, 'mact', d_limits).astype(float16), name='mact', unit='Msol')
+                Column(data=ab_mag_arr[d_limits].astype(
+                    float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
+                Column(data=app_mags[d_limits].astype(
+                    float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
+                Column(data=px.astype(float16), name='px',
+                       description=display(px), unit='kiloparsec'),
+                Column(data=py.astype(float16), name='py',
+                       description=display(py), unit='kiloparsec'),
+                Column(data=pz.astype(float16), name='pz',
+                       description=display(pz), unit='kiloparsec'),
+                Column(data=integer_x_arr.astype(uint16),
+                       name='x_int', unit='int16'),
+                Column(data=intiger_y_arr.astype(uint16),
+                       name='y_int', unit='int16'),
+                Column(data=proj_rads.astype(float16), name='r_proj',
+                       description=display(proj_rads), unit='kpc'),
+                Column(data=satids.astype(uint16), name='satids',
+                       description=display(satids), unit='int16'),
+                Column(data=load_data_arr(halo, 'teff', d_limits).astype(
+                    float16), name='teff', unit='Kelvin'),
+                Column(data=load_data_arr(halo, 'feh', d_limits).astype(
+                    float16), name='feh',  unit='dex'),
+                Column(data=load_data_arr(halo, 'age', d_limits).astype(
+                    float16), name='age',  unit='Gyr'),
+                Column(data=load_data_arr(halo, 'alpha',
+                                          d_limits).astype(float16), name='alpha'),
+                Column(data=load_data_arr(halo, 'smass', d_limits).astype(
+                    float16), name='smass',  unit='Msol'),
+                Column(data=load_data_arr(halo, 'mact', d_limits).astype(
+                    float16), name='mact', unit='Msol')
             ])
             print('column data loaded')
             for k in d_table.keys():
@@ -362,7 +390,8 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
                 os.mkdir(table_save_path)
                 print('done')
 
-            table_dir = os.path.join(table_save_path, str(Config.get('grid_options', 'size')))
+            table_dir = os.path.join(table_save_path, str(
+                Config.get('grid_options', 'size')))
             if not os.path.isdir(table_dir):
                 os.mkdir(table_dir)
             table_fh = os.path.join(
@@ -381,6 +410,29 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
 
             print('starting table')
             d_table = Table()
+            cmd_table = Table()
+            pos_table = Table()
+
+            pos_table.meta['halo'] = halo
+            pos_table.meta['abm_lim'] = str(round(abs_mag_limit, 2))
+            pos_table.meta['m_lims'] = [str(i) for i in m_lims.tolist()]
+            pos_table.meta['d_mpc'] = d_mpc
+            pos_table.meta['f_type'] = f_type
+            #d_table.meta['satids'] = unique(satids).tolist()
+            pos_table.meta['sat0'] = str(satids.min())
+            pos_table.meta['sat1'] = str(satids.max())
+            pos_table.meta['n_sats'] = len(unique(satids))
+
+            cmd_table.meta['halo'] = halo
+            cmd_table.meta['abm_lim'] = str(round(abs_mag_limit, 2))
+            cmd_table.meta['m_lims'] = [str(i) for i in m_lims.tolist()]
+            cmd_table.meta['d_mpc'] = d_mpc
+            cmd_table.meta['f_type'] = f_type
+            #d_table.meta['satids'] = unique(satids).tolist()
+            cmd_table.meta['sat0'] = str(satids.min())
+            cmd_table.meta['sat1'] = str(satids.max())
+            cmd_table.meta['n_sats'] = len(unique(satids))
+
             #d_table.meta['spin_bin_creation_time'] = time.ctime()
             #d_table.meta['grid_fh'] = filename
             d_table.meta['halo'] = halo
@@ -398,23 +450,35 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
                 print('  --> ', k, ':', d_table.meta[k])
             print('loading column data')
             # load_data_arr(halo_name, data_key, lim)
+
+            for filter_type, limit in Config.items('Filter_limits'):
+                cmd_table.add_column(Column(data=apparent_magnitude(load_ab_mags(halo, f_type=filter_type), d_mpc)[
+                                      d_limits].astype(float16), name='m_' + filter_type, unit='mag'))
+
+            pos_table.add_columns([
+                Column(data=px.astype(float16), name='py',
+                       description=display(px), unit='kiloparsec'),
+                Column(data=py.astype(float16), name='px',
+                       description=display(py), unit='kiloparsec')])
+            
             d_table.add_columns([
-                #Column(data=ab_mag_arr[d_limits].astype(float16), name='ab_mag_arr', description=display(ab_mag_arr[d_limits]), unit='ABmag'),
-                Column(data=app_mags[d_limits].astype(float16), name='app_mags', description=display(app_mags[d_limits]), unit='mag'),
-                # need to flip x and y axis
-                Column(data=px.astype(float16), name='py', description=display(px), unit='kiloparsec'),
-                Column(data=py.astype(float16), name='px', description=display(py), unit='kiloparsec'),
-                #Column(data=pz.astype(float16), name='pz', description=display(pz), unit='kiloparsec'),
-                Column(data=integer_x_arr.astype(uint16), name='y_int', unit='int16'),
-                Column(data=intiger_y_arr.astype(uint16), name='x_int', unit='int16'),
+
+                Column(data=integer_x_arr.astype(uint16),
+                       name='y_int', unit='int16'),
+                Column(data=intiger_y_arr.astype(uint16),
+                       name='x_int', unit='int16'),
                 #Column(data=proj_rads.astype(float16), name='r_proj', description=display(proj_rads), unit='kpc'),
-                Column(data=satids.astype(uint16), name='satids', description=display(satids), unit='int16'),
+                Column(data=satids.astype(uint16), name='satids',
+                       description=display(satids), unit='int16'),
                 #Column(data=load_data_arr(halo, 'teff', d_limits).astype(float16), name='teff', unit='Kelvin'),
-                Column(data=load_data_arr(halo, 'feh', d_limits).astype(float16), name='feh',  unit='dex'),
-                Column(data=load_data_arr(halo, 'age', d_limits).astype(float16), name='age',  unit='Gyr'),
+                Column(data=load_data_arr(halo, 'feh', d_limits).astype(
+                    float16), name='feh',  unit='dex'),
+                Column(data=load_data_arr(halo, 'age', d_limits).astype(
+                    float16), name='age',  unit='Gyr'),
                 #Column(data=load_data_arr(halo, 'alpha', d_limits).astype(float16), name='alpha'),
                 #Column(data=load_data_arr(halo, 'smass', d_limits).astype(float16), name='smass',  unit='Msol'),
-                Column(data=load_data_arr(halo, 'mact', d_limits).astype(float16), name='mact', unit='Msol')
+                Column(data=load_data_arr(halo, 'mact', d_limits).astype(
+                    float16), name='mact', unit='Msol')
             ])
             print('column data loaded')
             for k in d_table.keys():
@@ -428,7 +492,8 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
                 os.mkdir(table_save_path)
                 print('done')
 
-            table_dir = os.path.join(table_save_path, str(Config.get('grid_options', 'size')))
+            table_dir = os.path.join(table_save_path, str(
+                Config.get('grid_options', 'size')))
             if not os.path.isdir(table_dir):
                 os.mkdir(table_dir)
             table_fh = os.path.join(
@@ -438,6 +503,15 @@ def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='lite')
             print('writing table')
             d_table.write(table_fh, format='hdf5', path='data', compression=True,
                           overwrite=True, serialize_meta=True)
+            cmd_table_fh = os.path.join(
+                table_save_path, halo + '_' + str(d_mpc) + 'Mpc_CMD_table.hdf5')
+            cmd_table.write(cmd_table_fh, format='hdf5', path='data',
+                            compression=True, overwrite=True, serialize_meta=True)
+            pos_table_fh = os.path.join(
+                table_save_path, halo + '_' + str(d_mpc) + 'Mpc_pxpy_table.hdf5')
+            pos_table.write(pos_table_fh, format='hdf5', path='data',
+                            compression=True, overwrite=True, serialize_meta=True)            
+
             d_table.pprint(max_lines=25, max_width=window_size()[
                 0], show_name=True, show_unit=True, show_dtype=True, align=None)
             print('done')
