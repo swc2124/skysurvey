@@ -2,13 +2,10 @@ from __future__ import division, absolute_import, print_function
 import os
 import sys
 import ConfigParser
-from time import sleep as _sleep
-from collections import OrderedDict
 import skysurvey
 from skysurvey.new_config import SYS_CFG_FNAME
 from matplotlib import pyplot as plt
 from astropy.table import Table
-from astropy.table import Column
 import numpy as np
 
 
@@ -43,7 +40,7 @@ def _plot(feat_dict):
     sys.stdout.write('\nplotting ' + halo +
                      ' feature number: ' + str(plot_number))
     sys.stdout.flush()
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(20, 20))
     title0 = 'group number:' + str(plot_number)
     title1 = '  r0: ' + str(feat_dict['r_in']) + \
         ' r1:' + str(feat_dict['r_out'])
@@ -80,25 +77,29 @@ def _plot(feat_dict):
 
 def _plot_halo(table):
     print('plotting', table.meta['halo'])
-    fig = plt.figure(figsize=(10, 10))
+    fig = plt.figure(figsize=(20, 20))
     halo = table.meta['halo']
     fig.suptitle(halo)
-    rect = [0.1, 0.1, 0.8, 0.8]
-    plr = fig.add_axes(rect, polar=True, alpha=.2,
-                       facecolor=None, frame_on=False)
-    plr.set_ylim([0, 300])
-    ax = fig.add_axes(rect, alpha=.2, facecolor=None, frame_on=False)
-    ax.axis
-    ax.set_ylim([0, 600])
-    ax.set_xlim([0, 600])
-    ax.axes.grid()
-    ax.set_aspect('equal')
-    ax.axis('off')
-    ax.scatter(table['x_int'], table['y_int'])
+    ax = fig.add_subplot(111, projection='polar')
+    ax.scatter(
+        table['Phi'][::10],
+        table['Rads'][::10],
+        s=10,
+        alpha=.15,
+        marker='.',
+        cmap=plt.cm.Paired,
+        c=table['Xbox'][::10],
+        vmin=1.0,
+        vmax=10.0)
+    ax.set_thetagrids(np.linspace(0.0, 360.0, 32)[:-1])
+    ax.set_rgrids(range(10, 300, 25))
+    ax.set_title(table.meta['halo'])
+    ax.set_ylim([0, 300])
+
     plot_fh = os.path.join(Config.get('PATH', 'plot_dir'),
                            'groupfinder_testplots', halo)
     try:
-        fig.savefig(plot_fh)
+        fig.savefig(plot_fh, dpi=400)
     except:
         import time
         time.sleep(1)
@@ -264,15 +265,18 @@ def count_satids(sats, sats_book):
 table_dirs = {}
 for name in table_dirs_names:
     table_dirs[name] = os.path.join(table_dir, name)
-percent = 0.1  # 10% of radius
-annulus_degree_step = 1  # Within 1 degree
-xbox_min_value = 10.0
-filenames = os.listdir(table_dirs['merged_tables'])
-filenames.reverse()
-for name in filenames:
-    table_fh = os.path.join(table_dirs['merged_tables'], name)
-    table = Table.read(table_fh, path='data')
-    table = table[::10]
+percent = 0.07  # 10% of radius
+annulus_degree_step = 0.75  # Within 1 degree
+xbox_min_value = 1.0
+table_dir_path = os.path.join(skysurvey.table_dir, 'merged_tables')
+tables = [fh for fh in os.listdir(table_dir_path) if fh.endswith('hdf5')]
+for name in tables:
+    table_fh = os.path.join(table_dir_path, name)
+    table = Table.read(
+        table_fh,
+        format='hdf5',
+        path='data')
+    #table = table[::10]
     table.remove_rows(np.nonzero(table['Xbox'] < xbox_min_value))
     halo = table.meta['halo']
     _plot_halo(table)
@@ -280,9 +284,7 @@ for name in filenames:
     feature_id = 0
     r_start = int(table['Rads'].min())
     r_stop = int(table['Rads'].max())
-    cycle = 0
     for i, annulus in enumerate(range(r_start, r_stop, 1)):
-        cycle += 1
         region = annulus * 0.1
         r_in = annulus - region
         r_out = annulus + region
@@ -304,6 +306,9 @@ for name in filenames:
             xbox_values = table['Xbox'][lims]
             m5 = ' [nothing happend] '
             if n_boxes:
+
+
+
                 if not feature_id in master_dict.keys():
                     sats_book = {}
                     for satid in table.meta['satids']:
@@ -321,8 +326,17 @@ for name in filenames:
                         xbox_values,
                         count_satids(satids, sats_book))
                     m5 = '[started feature] '
+
+
+
+
                 current_feature = False
                 known_feature = False
+
+
+
+
+
                 for known_feat_id in master_dict.keys():
                     feature = master_dict[known_feat_id]
                     for point in set(points):
@@ -332,6 +346,9 @@ for name in filenames:
                             break
                     if known_feature:
                         break
+
+
+
                 if not known_feature:
                     for unknown_point in set(points):
                         x0, y0 = unknown_point
@@ -346,6 +363,10 @@ for name in filenames:
                                 break
                         if current_feature:
                             break
+
+
+
+
                 if current_feature:
                     master_dict[feature_id] = add_to_feature(
                         master_dict[feature_id],
@@ -384,6 +405,7 @@ for name in filenames:
                         count_satids(satids, sats_book))
                     m5 = '[else started feature] '
                     master_dict = merge(master_dict)
+
             msg0 = '\r\r[ ' + halo + ' ] '
             msg1 = '[ r:' + str(annulus) + ' Kpc ] '
             msg2 = '[ id: ' + str(feature_id) + ' ] '
@@ -392,12 +414,18 @@ for name in filenames:
             msg = msg0 + msg1 + msg2 + msg3 + msg4 + m5
             sys.stdout.write(msg)
             sys.stdout.flush()
+
         if m5 == ' [nothing happend] ':
             continue
         master_dict = merge(master_dict)
         if len(master_dict.keys()) > 100:
             master_dict = merge(master_dict)
             master_dict = merge(master_dict)
+
+
+# print functions record keeping.
+
+
     for key in master_dict.keys():
         master_dict[key] = _plot(master_dict[key])
     logfile_fh = os.path.join(
@@ -438,7 +466,7 @@ for name in filenames:
                 continue
             reports += 1
             feature = master_dict[f_id]
-            if feature[f_id]['nboxes'] < 25:
+            if feature['nboxes'] < 25:
                 continue
             logfile.write('\n' + '-' * 70 + '\n')
             logfile.write('[feature number: ' + str(f_id) + ' ]\n')

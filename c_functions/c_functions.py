@@ -36,7 +36,7 @@ if 'NUMBER_OF_PROCESSORS' in os.environ.keys():
     NUM_PROCESSORS = int(os.environ['NUMBER_OF_PROCESSORS'])
 else:
     NUM_PROCESSORS = 1
-    
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def rotation_matrix(np.ndarray[np.float64_t, ndim=1, mode='c'] ax, np.float64_t th):
@@ -91,7 +91,7 @@ def rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz, np.ndarray[np.float64
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def trippel_rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz):
-    ''' 
+    '''
     '''
     #print('starting trippel rotatation')
     cdef np.float64_t theta_1 = np.float64(np.divide((np.random.randint(360) * np.pi), 180.0))
@@ -137,7 +137,7 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
 
     print(line)
     print('[ integerize ]', '\n')
-    
+
     print('[before ] px min, mean, max : ', x.min(), ',', x.mean(), ',', x.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] x1 = x.round(3)
     x1 *= scale
@@ -152,7 +152,7 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
     y2 = y1.astype(np.int32)
     print('[ after ] py min, mean, max : ', y2.min(), ',', y2.mean(), ',', y2.max())
     print(line)
-    
+
     return x2, y2
 
 @cython.boundscheck(False)
@@ -175,14 +175,14 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
         np.float64_t mlim_min = lims[0]
         np.float64_t mlim_med = lims[1]
         np.float64_t mlim_max = lims[2]
-        
+
         # Apparent magnitude (apparent_mag).
         np.float64_t apparent_mag
 
         # The grid array (grid)
 
         np.ndarray[np.float64_t, ndim = 3, mode='c'] grid = np.zeros((Config.getint('grid_options', 'size'), Config.getint('grid_options', 'size'), Config.getint('grid_options', 'n_slices')), dtype=np.float64)
-     
+
         # Satprop arrays. TODO package data file
         np.ndarray[np.float32_t, ndim=1] tsat = SATPROP['tsat']
         np.ndarray[np.int32_t, ndim=1] bsat = SATPROP['bsat']
@@ -193,13 +193,13 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
         np.ndarray[np.int64_t, ndim=1] idx_1, idx_2
         #np.ndarray[np.int64_t, ndim=1] idx_1 = np.nonzero(bsat[satid + nsatc[2]] == 0)[0]
         #np.ndarray[np.int64_t, ndim=1] idx_2 = np.nonzero(bsat[satid + nsatc[2]] == 0)[1]
-        
+
         # Number of stars (n_stars) to bin.
         np.int_t n_stars = len(px)
-        
+
         # Number of threads
         np.int_t n_threads = int(px.shape[0]/(5 * 1e5))
-        
+
         # X and Y grid boundaries (boundary_x, boundary_y)
         np.int_t boundary_y = grid.shape[0]
         np.int_t boundary_x = grid.shape[1]
@@ -238,7 +238,9 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
     print('mlim_min: ', mlim_min)
     print('mlim_med: ', mlim_med)
     print('mlim_max: ', mlim_max)
+
     with nogil, parallel(num_threads=n_threads):
+
         for i in prange(n_stars, schedule='dynamic'):
 
             # Check to see if star is in FOV of grid.
@@ -247,21 +249,25 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
 
             # If star is in the grid.
             else:
+
                 sat_number = satid[i]
+
                 sat_age = tsat[sat_number]
-                
+
                 sat_bound = bsat[sat_number]
+
                 apparent_mag = ap_mags[i]
 
                 # If the star is unbound [0].
                 if not sat_bound:
                     unbound += 1
-                    
+
                     # Bin stars.
                     grid[px[i], py[i], 0] += 1.0
-                    
+
                     # Magnitudes.
                     grid[px[i], py[i], 1] += ab_mags[i]
+
                     #grid[px[i], py[i], 2] += apparent_mag
                     #if apparent_mag < mlim_min:
                     #    grid[px[i], py[i], 3] += 1.0
@@ -275,7 +281,7 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
                     # Satid.
                     grid[px[i], py[i], 3] += sat_number
 
-                    
+
 
                 # If the star is bound [1].
                 else:
@@ -294,13 +300,13 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
 
                 #grid[px[i], py[i], 13] += 1
                 grid[px[i], py[i], 4] += r_proj[i]
- 
+
     # Slices that need to be divided by the number of stars in each bin.
     idx_1, idx_2 = np.nonzero(grid[:, :, 0] > 0.)
     grid[idx_1, idx_2, 1] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 2] /= grid[idx_1, idx_2, 0]
     grid[idx_1, idx_2, 3] /= grid[idx_1, idx_2, 0]
-    #grid[idx_1, idx_2, 7] /= grid[idx_1, idx_2, 0]
+    grid[idx_1, idx_2, 4] /= grid[idx_1, idx_2, 0]
     #grid[idx_1, idx_2, 14] /= grid[idx_1, idx_2, 0]
 
     #idx_1, idx_2 = np.nonzero(grid[:, :, 8] > 0.)
@@ -362,8 +368,8 @@ def box_lims(np.ndarray[np.float64_t, ndim = 1] px, np.ndarray[np.float64_t, ndi
         np.float64_t neg_box_size = -(box_size)
         np.ndarray[np.int64_t, ndim = 1, mode='c'] idx_arr = np.zeros((n_stars), dtype=np.int64)
         np.int_t n_threads = np.int(px.shape[0]/1e6)
-    
-    # Set (threads)  
+
+    # Set (threads)
     if n_threads >= NUM_PROCESSORS:
         n_threads = NUM_PROCESSORS - 2
         if n_threads <= 0:
@@ -387,7 +393,7 @@ def box_lims(np.ndarray[np.float64_t, ndim = 1] px, np.ndarray[np.float64_t, ndi
 cdef extern from "math.h":
     double M_PI
 @cython.boundscheck(False)
-@cython.wraparound(False)    
+@cython.wraparound(False)
 def rotate_positions(np.ndarray[np.float64_t, ndim = 2] xyz_arr, np.ndarray[np.float64_t, ndim = 2] out_arr):
     cdef:
         int _theta1 = rand() % 4000
@@ -416,7 +422,7 @@ def rotate_positions(np.ndarray[np.float64_t, ndim = 2] xyz_arr, np.ndarray[np.f
                 out_arr[i, j] = s
 
 @cython.boundscheck(False)
-@cython.wraparound(False)    
+@cython.wraparound(False)
 def deposit_data(np.ndarray[np.float64_t, ndim = 2] in_arr,
     np.ndarray[np.float64_t, ndim = 1] out_arr,
     np.ndarray[np.int64_t, ndim = 1] bidx):
@@ -433,4 +439,4 @@ def deposit_data(np.ndarray[np.float64_t, ndim = 2] in_arr,
         out_arr[idx+1] += in_arr[j][bidx].mean()
         out_arr[idx+2] += in_arr[j][bidx].max()
     return n_stars
-    
+
