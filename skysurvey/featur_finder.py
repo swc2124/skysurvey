@@ -10,7 +10,10 @@ import numpy as np
 
 
 RECORD_TABLE = Table()
-names = ['r_in', 'r_out', 'degree0', 'degree1', 'nboxes', 'nstars_total', 'max_xboxvalue', 'min_xboxvalue', 'halo', 'plot_fh']
+names = ['r_in', 'r_out', 'degree0', 'degree1',
+         'nboxes', 'nstars_total',
+         'max_xboxvalue', 'min_xboxvalue',
+         'halo', 'plot_fh']
 dtypes = ['f', 'f', 'f', 'f', 'i', 'i', 'f', 'f', 'S10', 'str']
 
 # Table directory names and paths.
@@ -85,7 +88,7 @@ def _plot_halo(table):
         table['Phi'][::10],
         table['Rads'][::10],
         s=10,
-        alpha=.15,
+        alpha=.25,
         marker='.',
         cmap=plt.cm.Paired,
         c=table['Xbox'][::10],
@@ -218,7 +221,10 @@ def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
         'nstars_total': len(points),
         'max_xboxvalue': max(xboxes),
         'min_xboxvalue': min(xboxes),
-        'plot_fh': os.path.join(Config.get('PATH', 'plot_dir'), 'groupfinder_testplots', halo + '_feature_' + str(plt_num)),
+        'plot_fh': os.path.join(
+            Config.get('PATH', 'plot_dir'),
+            'groupfinder_testplots',
+            halo + '_feature_' + str(plt_num)),
         'halo': halo,
         'feature_id': plt_num,
         'sats_book': sat_book}
@@ -226,21 +232,28 @@ def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
 
 def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
     superset = False
+
     if fdict['points'].issuperset(pts):
         superset = True
+
     if fdict['r_out'] < r1:
         fdict['r_out'] = r1
+
     if deg0 + 180.0 < fdict['degree0'] + 180.0:
         fdict['degree0'] = round(deg0, 2)
+
     if deg1 + 180.0 > fdict['degree1'] + 180.0:
         fdict['degree1'] = round(deg1, 2)
+
     if fdict['max_xboxvalue'] < max(xbx):
         fdict['max_xboxvalue'] = max(xbx)
+
     if fdict['min_xboxvalue'] > min(xbx):
         fdict['min_xboxvalue'] = min(xbx)
     added = 0
     new_points = set(pts)
     unknown_points = new_points.difference(fdict['points'])
+
     for i, point in enumerate(pts):
         if point in unknown_points:
             fdict['nstars_total'] += 1
@@ -248,9 +261,14 @@ def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
             fdict['sats_book'][sats[i]] += 1
     fdict['points'].update(pts)
     fdict['nboxes'] = len(fdict['points'])
+
     if not superset:
-        sys.stdout.write('added ' + str(added) + ' out of ' + str(len(pts)) +
-                         ' stars to feature ' + str(fdict['feature_id']) + '\n')
+        m0 = 'added ' + str(added)
+        m1 = ' out of ' + str(len(pts))
+        m2 = ' stars to feature '
+        m3 = str(fdict['feature_id']) + '\n'
+        sys.stdout.write(m0 + m1 + m2 + m3)
+
     if superset and added:
         sys.exit(1)
     sys.stdout.flush()
@@ -265,11 +283,14 @@ def count_satids(sats, sats_book):
 table_dirs = {}
 for name in table_dirs_names:
     table_dirs[name] = os.path.join(table_dir, name)
-percent = 0.07  # 10% of radius
-annulus_degree_step = 0.75  # Within 1 degree
-xbox_min_value = 1.0
+
+percent = 0.1  # 10% of radius
+annulus_degree_step = 1.0  # Within 1 degree
+xbox_min_value = 2.5
+
 table_dir_path = os.path.join(skysurvey.table_dir, 'merged_tables')
 tables = [fh for fh in os.listdir(table_dir_path) if fh.endswith('hdf5')]
+
 for name in tables:
     table_fh = os.path.join(table_dir_path, name)
     table = Table.read(
@@ -291,6 +312,7 @@ for name in tables:
         deg_start = table['Degree'].min()
         deg_end = table['Degree'].max()
         for degree in np.linspace(deg_start, deg_end, 360):
+
             lims = np.nonzero(
                 np.logical_and(
                     np.logical_and(
@@ -306,8 +328,6 @@ for name in tables:
             xbox_values = table['Xbox'][lims]
             m5 = ' [nothing happend] '
             if n_boxes:
-
-
 
                 if not feature_id in master_dict.keys():
                     sats_book = {}
@@ -327,15 +347,8 @@ for name in tables:
                         count_satids(satids, sats_book))
                     m5 = '[started feature] '
 
-
-
-
                 current_feature = False
                 known_feature = False
-
-
-
-
 
                 for known_feat_id in master_dict.keys():
                     feature = master_dict[known_feat_id]
@@ -347,9 +360,6 @@ for name in tables:
                     if known_feature:
                         break
 
-
-
-                if not known_feature:
                     for unknown_point in set(points):
                         x0, y0 = unknown_point
                         known_points = master_dict[feature_id]['points']
@@ -363,9 +373,6 @@ for name in tables:
                                 break
                         if current_feature:
                             break
-
-
-
 
                 if current_feature:
                     master_dict[feature_id] = add_to_feature(
