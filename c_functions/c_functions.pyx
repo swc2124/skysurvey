@@ -1,10 +1,40 @@
-from __future__ import division, print_function
+'''[summary]
 
-import sys
+[description]
+
+Attributes
+----------
+sys_config_fh : {[type]}
+    [description]
+SysConfig : {[type]}
+    [description]
+SysConfig.read(sys_config_fh) : {[type]}
+    [description]
+config_fh : {[type]}
+    [description]
+Config : {[type]}
+    [description]
+Config.read(config_fh) : {[type]}
+    [description]
+ebf_fh : {[type]}
+    [description]
+SATPROP : {[type]}
+    [description]
+if 'NUMBER_OF_PROCESSORS' in os.environ.keys(): : {[type]}
+    [description]
+else: : {[type]}
+    [description]
+'''
+from __future__ import division
+from __future__ import print_function
+
 import os
+import sys
+
 from os.path import join
 
 import cython
+
 from cython.parallel import parallel
 from cython.parallel import prange
 
@@ -19,8 +49,9 @@ from libc.math cimport sin
 from libc.math cimport M_PI
 
 import ConfigParser
-from skysurvey.new_config import SYS_CFG_FNAME
 import skysurvey
+
+from skysurvey.new_config import SYS_CFG_FNAME
 
 sys_config_fh = os.path.join(os.path.dirname(os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)
 SysConfig = ConfigParser.ConfigParser()
@@ -149,7 +180,7 @@ def integerize(
     np.array,np.array
             Returns two equivalent length arrays in int32 form.
     '''
-    center = Config.getint('grid_options', 'size') / 2.0
+    center = Config.getint('grid_options', 'size') / 2
     scale = Config.getint('grid_options', 'size') / (x.max() + np.abs(x.min()))
     line = '-' * 85
     #print('converting px and py arrays to integers')
@@ -159,15 +190,15 @@ def integerize(
 
     print('[before ] px min, mean, max : ', x.min(), ',', x.mean(), ',', x.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] x1 = x.round(3)
-    x1 *= scale
     x1 += center
+    x1 *= scale
     x2 = x1.astype(np.int32)
     print('[ after ] px min, mean, max : ', x2.min(), ',', x2.mean(), ',', x2.max())
 
     print('[before ] py min, mean, max : ', y.min(), ',', y.mean(), ',', y.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] y1 = y.round(3)
-    y1 *= scale
     y1 += center
+    y1 *= scale
     y2 = y1.astype(np.int32)
     print('[ after ] py min, mean, max : ', y2.min(), ',', y2.mean(), ',', y2.max())
     print(line)

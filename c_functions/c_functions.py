@@ -1,10 +1,13 @@
-from __future__ import division, print_function
+from __future__ import division
+from __future__ import print_function
 
-import sys
 import os
+import sys
+
 from os.path import join
 
 import cython
+
 from cython.parallel import parallel
 from cython.parallel import prange
 
@@ -19,8 +22,9 @@ from libc.math cimport sin
 from libc.math cimport M_PI
 
 import ConfigParser
-from skysurvey.new_config import SYS_CFG_FNAME
 import skysurvey
+
+from skysurvey.new_config import SYS_CFG_FNAME
 
 sys_config_fh = os.path.join(os.path.dirname(os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)
 SysConfig = ConfigParser.ConfigParser()
@@ -66,7 +70,10 @@ def rotation_matrix(np.ndarray[np.float64_t, ndim=1, mode='c'] ax, np.float64_t 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz, np.ndarray[np.float64_t, ndim=1, mode='c'] axis, np.float64_t theta):
+def rotate(
+    np.ndarray[np.float64_t, ndim=2, mode='c'] xyz,
+    np.ndarray[np.float64_t, ndim=1, mode='c'] axis,
+    np.float64_t theta):
     '''
     Consolidates data and rotation options into a single function.
 
@@ -85,18 +92,32 @@ def rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz, np.ndarray[np.float64
             returns the rotated positions in the same form as they were input.
     '''
     #print('rotating x, y and z position arrays')
-    return np.asarray(np.dot(rotation_matrix(axis, theta), [xyz[0], xyz[1], xyz[2]]), dtype=np.float64)
+    return np.asarray(
+        np.dot(
+            rotation_matrix(axis, theta),
+            [xyz[0], xyz[1], xyz[2]]),
+        dtype=np.float64)
 
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def trippel_rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz):
+def trippel_rotate(
+    np.ndarray[np.float64_t, ndim=2, mode='c'] xyz):
     '''
     '''
     #print('starting trippel rotatation')
-    cdef np.float64_t theta_1 = np.float64(np.divide((np.random.randint(360) * np.pi), 180.0))
-    cdef np.float64_t theta_2 = np.float64(np.divide((np.random.randint(360) * np.pi), 180.0))
-    cdef np.float64_t theta_3 = np.float64(np.divide((np.random.randint(360) * np.pi), 180.0))
+    cdef np.float64_t theta_1 = np.float64(
+        np.divide(
+            (np.random.randint(360) * np.pi),
+            180.0))
+    cdef np.float64_t theta_2 = np.float64(
+        np.divide(
+            (np.random.randint(360) * np.pi),
+            180.0))
+    cdef np.float64_t theta_3 = np.float64(
+        np.divide(
+            (np.random.randint(360) * np.pi),
+            180.0))
     return rotate(
         rotate(
             rotate(xyz,
@@ -106,7 +127,9 @@ def trippel_rotate(np.ndarray[np.float64_t, ndim=2, mode='c'] xyz):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] y):
+def integerize(
+    np.ndarray[np.float64_t, ndim=1] x,
+    np.ndarray[np.float64_t, ndim=1] y):
     '''
     Convert np.array of float64 to int32 for binning into a grid.
 
@@ -130,7 +153,7 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
     np.array,np.array
             Returns two equivalent length arrays in int32 form.
     '''
-    center = Config.getint('grid_options', 'size') / 2.0
+    center = Config.getint('grid_options', 'size') / 2
     scale = Config.getint('grid_options', 'size') / (x.max() + np.abs(x.min()))
     line = '-' * 85
     #print('converting px and py arrays to integers')
@@ -140,15 +163,15 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
 
     print('[before ] px min, mean, max : ', x.min(), ',', x.mean(), ',', x.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] x1 = x.round(3)
-    x1 *= scale
     x1 += center
+    x1 *= scale
     x2 = x1.astype(np.int32)
     print('[ after ] px min, mean, max : ', x2.min(), ',', x2.mean(), ',', x2.max())
 
     print('[before ] py min, mean, max : ', y.min(), ',', y.mean(), ',', y.max())
     cdef np.ndarray[np.float64_t, ndim = 1, mode='c'] y1 = y.round(3)
-    y1 *= scale
     y1 += center
+    y1 *= scale
     y2 = y1.astype(np.int32)
     print('[ after ] py min, mean, max : ', y2.min(), ',', y2.mean(), ',', y2.max())
     print(line)
@@ -157,10 +180,14 @@ def integerize(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
-        np.ndarray[np.float64_t, ndim=1] ab_mags, np.ndarray[np.float64_t, ndim=1] ap_mags,
-        np.ndarray[np.float64_t, ndim=1] r_proj, np.ndarray[np.float64_t, ndim=1] lims,
-        np.ndarray[np.int32_t, ndim=1] satid):
+def bin(
+    np.ndarray[np.int32_t, ndim=1] px,
+    np.ndarray[np.int32_t, ndim=1] py,
+    np.ndarray[np.float64_t, ndim=1] ab_mags,
+    np.ndarray[np.float64_t, ndim=1] ap_mags,
+    np.ndarray[np.float64_t, ndim=1] r_proj,
+    np.ndarray[np.float64_t, ndim=1] lims,
+    np.ndarray[np.int32_t, ndim=1] satid):
 
     line = '-' * 85
     print(line)
@@ -330,7 +357,9 @@ def bin(np.ndarray[np.int32_t, ndim=1] px, np.ndarray[np.int32_t, ndim=1] py,
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def find_dlims(np.ndarray[np.float64_t, ndim = 1] mag_arr, double ab_mag_limit):
+def find_dlims(
+    np.ndarray[np.float64_t, ndim = 1] mag_arr,
+    double ab_mag_limit):
     """
     Find the indices of the stars in an array that are visible given a limit.
 
@@ -359,7 +388,10 @@ def find_dlims(np.ndarray[np.float64_t, ndim = 1] mag_arr, double ab_mag_limit):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def box_lims(np.ndarray[np.float64_t, ndim = 1] px, np.ndarray[np.float64_t, ndim = 1] py, np.float64_t box_size,  np.float64_t box_step):
+def box_lims(
+    np.ndarray[np.float64_t, ndim = 1] px,
+    np.ndarray[np.float64_t, ndim = 1] py,
+    np.float64_t box_size,  np.float64_t box_step):
     cdef:
         size_t i
         np.int32_t n_stars = px.shape[0]
@@ -394,7 +426,9 @@ cdef extern from "math.h":
     double M_PI
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def rotate_positions(np.ndarray[np.float64_t, ndim = 2] xyz_arr, np.ndarray[np.float64_t, ndim = 2] out_arr):
+def rotate_positions(
+    np.ndarray[np.float64_t, ndim = 2] xyz_arr,
+    np.ndarray[np.float64_t, ndim = 2] out_arr):
     cdef:
         int _theta1 = rand() % 4000
         int _theta2 = rand() % 2000

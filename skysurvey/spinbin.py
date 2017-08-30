@@ -115,7 +115,7 @@ def display(arr, to_print=False, log=False):
         return str(msg)
 
 
-def _spin(halo, _m_lims=None, _distance_mpc=None,
+def _spin(halo, _m_lims=None, _distance_mpc=None, _fname=None,
           _filter_type=None, table=True):
     if _m_lims == None:
         mag_list = [float(lim) for name, lim in
@@ -127,8 +127,6 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
         _distance_mpc = Config.getfloat('Distance', 'd_mpc')
     if _filter_type == None:
         _filter_type = Config.get('Filter', 'filter_type')
-
-    print('prepairing arrays')
     ab_mag_arr = load_ab_mags(
         halo,
         f_type=_filter_type)
@@ -141,31 +139,21 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
     app_mags = apparent_magnitude(ab_mag_arr, _distance_mpc)
     r_px, r_py, r_pz = trippel_rotate(load_positions(halo, d_limits))
     integer_x_arr, intiger_y_arr = integerize(r_px, r_py)
-    proj_rads = sqrt(square(px) + square(py))
+    proj_rads = sqrt(square(r_px) + square(r_py))
     satids = load_satid(halo, d_limits)
-    print('done')
-
     if table:
-
-        print('starting table')
         d_table = Table()
         d_table.meta['spin_bin_creation_time'] = time.ctime()
-        d_table.meta['grid_fh'] = filename
+        d_table.meta['grid_fh'] = _fname
         d_table.meta['halo'] = halo
-        d_table.meta['abs_mag_limit'] = str(round(abs_mag_limit, 2))
-        d_table.meta['m_lims'] = m_lims
-        d_table.meta['d_mpc'] = d_mpc
-        d_table.meta['f_type'] = f_type
+        d_table.meta['abm_lim'] = str(round(abs_mag_limit, 2))
+        d_table.meta['m_lims'] = _m_lims
+        d_table.meta['d_mpc'] = _distance_mpc
+        d_table.meta['f_type'] = _filter_type
         d_table.meta['satids'] = unique(satids).tolist()
-        d_table.meta['satid_start'] = str(satids.min())
-        d_table.meta['satid_end'] = str(satids.max())
+        d_table.meta['sat0'] = str(satids.min())
+        d_table.meta['sat1'] = str(satids.max())
         d_table.meta['n_sats'] = len(unique(satids))
-
-        print('table created')
-        for k in d_table.meta.keys():
-            print('  --> ', k, ':', d_table.meta[k])
-
-        print('loading column data')
         d_table.add_columns([
             Column(
                 data=ab_mag_arr[d_limits].astype(float16),
@@ -173,24 +161,20 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
                 description=display(ab_mag_arr[d_limits]),
                 unit='ABmag'),
             Column(
-                data=app_mags[d_limits].astype(float16),
+                data=app_mags[d_limits].astype(
+                    float16),
                 name='app_mags',
                 description=display(app_mags[d_limits]),
                 unit='mag'),
             Column(
                 data=r_px.astype(float16),
-                name='r_px',
+                name='px',
                 description=display(r_px),
                 unit='kiloparsec'),
             Column(
                 data=r_py.astype(float16),
-                name='r_py',
+                name='py',
                 description=display(r_py),
-                unit='kiloparsec'),
-            Column(
-                data=r_pz.astype(float16),
-                name='r_pz',
-                description=display(r_pz),
                 unit='kiloparsec'),
             Column(
                 data=integer_x_arr.astype(uint16),
@@ -204,30 +188,60 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
                 data=satids.astype(uint16),
                 name='satids',
                 description=display(satids),
-                unit='int16')
-        ])
-        print('column data loaded')
-        for k in d_table.keys():
-            print('  -->', k, ':', d_table[k].description)
-
+                unit='int16'),
+            Column(
+                data=load_data_arr(
+                    halo,
+                    'teff',
+                    d_limits).astype(float16),
+                name='teff',
+                unit='Kelvin'),
+            Column(
+                data=load_data_arr(
+                    halo,
+                    'feh',
+                    d_limits).astype(float16),
+                name='feh',
+                unit='dex'),
+            Column(
+                data=load_data_arr(
+                    halo,
+                    'age',
+                    d_limits).astype(float16),
+                name='age',
+                unit='Gyr'),
+            Column(
+                data=load_data_arr(
+                    halo,
+                    'alpha',
+                    d_limits).astype(float16),
+                name='alpha'),
+            Column(
+                data=load_data_arr(
+                    halo,
+                    'smass',
+                    d_limits).astype(float16),
+                name='smass',
+                unit='Msol'),
+            Column(
+                data=load_data_arr(
+                    halo,
+                    'mact',
+                    d_limits).astype(float16),
+                name='mact',
+                unit='Msol')])
         table_save_path = os.path.join(
             Config.get('PATH', 'table_dir'),
-            'spinbin_output')
-
-        print('save path :', table_save_path)
+            'spinbin_output',
+            Config.get('grid_options', 'size'))
         if not os.path.isdir(table_save_path):
-            print('making new dir:', table_save_path)
             os.mkdir(table_save_path)
-            print('done')
-
+        table_fh_prefix = halo + '_' + \
+            str(_distance_mpc) + 'Mpc_' + _filter_type
         table_fh = os.path.join(
             table_save_path,
-            halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_table.hdf5')
-
-        print('table file handel:', table_fh)
+            table_fh_prefix + '_table.hdf5')
         d_table.meta['spinbin_output_fh'] = table_fh
-
-        print('writing table')
         d_table.write(
             table_fh,
             format='hdf5',
@@ -235,7 +249,6 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
             compression=True,
             overwrite=True,
             serialize_meta=True)
-
         d_table.pprint(
             max_lines=100,
             max_width=window_size()[0],
@@ -243,9 +256,6 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
             show_unit=True,
             show_dtype=True,
             align='^')
-        print('done')
-        print(d_table.info())
-
     return bf(
         integer_x_arr,
         intiger_y_arr,
@@ -259,7 +269,9 @@ def _spin(halo, _m_lims=None, _distance_mpc=None,
 def spinall(path=None, m_lims=None, d_mpc=None, f_type=None):
 
     if path == None:
-        path = Config.get('PATH', 'grid_dir')
+        path = os.path.join(
+            Config.get('PATH', 'grid_dir'),
+            Config.get('grid_options', 'size'))
     if m_lims == None:
         m_lims = asarray([float(lim) for name, lim in Config.items(
             'Default_magnitude_limits')], dtype=float64)
@@ -272,10 +284,41 @@ def spinall(path=None, m_lims=None, d_mpc=None, f_type=None):
         filename = os.path.join(
             path, halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_grid')
         print('--> [ STARTING ' + halo + ' ]\nspining and binning halo ' + halo)
-        save(filename, _spin(halo, _m_lims=m_lims,
+        save(filename, _spin(halo, _m_lims=m_lims, _fname=filename,
                              _distance_mpc=d_mpc, _filter_type=f_type))
         print(halo + ' saved : ' + filename +
               '\n---------------------------------\n')
+
+
+def spinallMPI(path=None, m_lims=None, d_mpc=None, f_type=None):
+    from mpi4py import MPI
+    #  MPI values.
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    mpi_size = comm.Get_size()
+    name = MPI.Get_processor_name()
+
+    if path == None:
+        path = os.path.join(
+            Config.get('PATH', 'grid_dir'),
+            Config.get('grid_options', 'size'))
+    if m_lims == None:
+        m_lims = asarray([float(lim) for name, lim in Config.items(
+            'Default_magnitude_limits')], dtype=float64)
+    if d_mpc == None:
+        d_mpc = Config.getfloat('Distance', 'd_mpc')
+    if f_type == None:
+        f_type = Config.get('Filter', 'filter_type')
+
+    halos = Config.get('Default_halos', 'halos').split(',')
+    assert len(halos) == mpi_size
+
+    halo = halos[rank]
+    filename = os.path.join(
+        path, halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_grid')
+    print('--> [ STARTING ' + halo + ' ]\nspining and binning halo ' + halo)
+    save(filename, _spin(halo, _m_lims=m_lims, _fname=filename,
+         _distance_mpc=d_mpc, _filter_type=f_type))
 
 
 def spinone(halo, path=None, m_lims=None, d_mpc=None, f_type=None):
@@ -516,7 +559,7 @@ def nospin_binall(path=None, m_lims=None,
             pos_table.meta['m_lims'] = [str(i) for i in m_lims.tolist()]
             pos_table.meta['d_mpc'] = d_mpc
             pos_table.meta['f_type'] = f_type
-            #d_table.meta['satids'] = unique(satids).tolist()
+            # d_table.meta['satids'] = unique(satids).tolist()
             pos_table.meta['sat0'] = str(satids.min())
             pos_table.meta['sat1'] = str(satids.max())
             pos_table.meta['n_sats'] = len(unique(satids))
@@ -526,19 +569,19 @@ def nospin_binall(path=None, m_lims=None,
             cmd_table.meta['m_lims'] = [str(i) for i in m_lims.tolist()]
             cmd_table.meta['d_mpc'] = d_mpc
             cmd_table.meta['f_type'] = f_type
-            #d_table.meta['satids'] = unique(satids).tolist()
+            # d_table.meta['satids'] = unique(satids).tolist()
             cmd_table.meta['sat0'] = str(satids.min())
             cmd_table.meta['sat1'] = str(satids.max())
             cmd_table.meta['n_sats'] = len(unique(satids))
 
-            #d_table.meta['spin_bin_creation_time'] = time.ctime()
-            #d_table.meta['grid_fh'] = filename
+            # d_table.meta['spin_bin_creation_time'] = time.ctime()
+            # d_table.meta['grid_fh'] = filename
             d_table.meta['halo'] = halo
             d_table.meta['abm_lim'] = str(round(abs_mag_limit, 2))
             d_table.meta['m_lims'] = [str(i) for i in m_lims.tolist()]
             d_table.meta['d_mpc'] = d_mpc
             d_table.meta['f_type'] = f_type
-            #d_table.meta['satids'] = unique(satids).tolist()
+            # d_table.meta['satids'] = unique(satids).tolist()
             d_table.meta['sat0'] = str(satids.min())
             d_table.meta['sat1'] = str(satids.max())
             d_table.meta['n_sats'] = len(unique(satids))
@@ -605,18 +648,10 @@ def nospin_binall(path=None, m_lims=None,
                         d_limits).astype(float16),
                     name='mact',
                     unit='Msol')])
-
-            print('column data loaded')
-            for k in d_table.keys():
-                print('  -->', k, ':', d_table[k].description)
-
             table_save_path = os.path.join(Config.get(
                 'PATH', 'table_dir'), 'spinbin_output')
-            print('save path :', table_save_path)
             if not os.path.isdir(table_save_path):
-                print('making new dir:', table_save_path)
                 os.mkdir(table_save_path)
-                print('done')
 
             table_dir = os.path.join(table_save_path, str(
                 Config.get('grid_options', 'size')))
@@ -638,7 +673,7 @@ def nospin_binall(path=None, m_lims=None,
             pos_table.write(pos_table_fh, format='hdf5', path='data',
                             compression=True, overwrite=True, serialize_meta=True)
 
-            d_table.pprint(max_lines=100, max_width=window_size()[
-                0], show_name=True, show_unit=True, show_dtype=True, align='^')
-            print('done')
-            print(d_table.info())
+
+if __name__ == '__main__':
+
+    spinallMPI()
