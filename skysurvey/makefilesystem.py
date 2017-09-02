@@ -2,19 +2,23 @@
 
 [description]
 """
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
-from os.path import join as join
 import sys
+
+from os.path import join as join
 from shutil import copyfile
 
 import ebf
 import numpy as np
 
 import ConfigParser
-from .new_config import SYS_CFG_FNAME
 import skysurvey
+
+from .new_config import SYS_CFG_FNAME
 
 
 __all__ = ['fsinit']

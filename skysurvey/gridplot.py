@@ -1,40 +1,45 @@
 """TODO"""
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-from warnings import warn
 import os
 
+from warnings import warn
 
-from numpy import float64
-from numpy import array
-from numpy import load
-from numpy import save
-from numpy import arctan
-from numpy import square
-from numpy import pi
-from numpy import log10
-from numpy import linspace
-from numpy import logical_and
+
 import numpy as np
+
+from numpy import arctan
+from numpy import array
+from numpy import float64
+from numpy import linspace
+from numpy import load
+from numpy import log10
+from numpy import logical_and
+from numpy import pi
+from numpy import save
+from numpy import square
 
 import matplotlib
 matplotlib.use('AGG')
 from matplotlib import pyplot as plt
 '''
-from matplotlib.pyplot import figure
 from matplotlib.pyplot import close
+from matplotlib.pyplot import cm
+from matplotlib.pyplot import colorbar
+from matplotlib.pyplot import figure
 from matplotlib.pyplot import grid
 from matplotlib.pyplot import legend
-from matplotlib.pyplot import cm
 from matplotlib.pyplot import pcolormesh
-from matplotlib.pyplot import colorbar
 '''
 
 from skysurvey.spinbin import spinone
 
 import ConfigParser
-from skysurvey.new_config import SYS_CFG_FNAME
 import skysurvey
+
+from skysurvey.new_config import SYS_CFG_FNAME
 
 sys_config_fh = os.path.join(os.path.dirname(
     os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)
@@ -341,7 +346,7 @@ def mixplot(plot_halos=['halo12', 'halo15', 'halo20'],
     print('y-axis min: ', round(_y0, 2))
     print('y-axis max: ', round(_y1, 2))
     for p_num, _file in enumerate(plt_halos):
-        
+
         if radius:
             r0, r1 = radius[p_num]
         else:

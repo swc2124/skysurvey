@@ -1,30 +1,62 @@
+# -*- coding: utf-8 -*-
+# @Author: sol courtney
+# @Date:   2017-06-11 19:23:59
+# @Last Modified by:   swc21
+# @Last Modified time: 2017-08-29 23:30:02
 
-from __future__ import division, absolute_import, print_function
+'''[summary]
 
+[description]
+
+Attributes
+----------
+sys_config_fh : {[type]}
+    [description]
+SysConfig : {[type]}
+    [description]
+SysConfig.read(sys_config_fh) : {[type]}
+    [description]
+config_fh : {[type]}
+    [description]
+Config : {[type]}
+    [description]
+Config.read(config_fh) : {[type]}
+    [description]
+VERBOSE : {[type]}
+    [description]
+if __name__ : {[type]}
+    [description]
+'''
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import ConfigParser
 import os
 import sys
-import ConfigParser
 import time
 
-from astropy.table import Table
 from astropy.table import Column
+from astropy.table import Table
 from astropy.table import vstack
 
-from astropy.units import kiloparsec
-from astropy.units import radian
+from astropy.units import ABmag
 from astropy.units import degree
 from astropy.units import gigayear
-from astropy.units import ABmag
+from astropy.units import kiloparsec
 from astropy.units import mag
+from astropy.units import radian
 
 
 import numpy as np
 
-from skysurvey.new_config import SYS_CFG_FNAME
 import skysurvey
 
+from skysurvey.new_config import SYS_CFG_FNAME
+
 sys_config_fh = os.path.join(os.path.dirname(
-    os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)
+                                os.path.realpath(
+                                    skysurvey.__file__)), SYS_CFG_FNAME)
 SysConfig = ConfigParser.ConfigParser()
 SysConfig.read(sys_config_fh)
 config_fh = SysConfig.get('skysurvey_global_settings', 'config_fh')
@@ -37,15 +69,12 @@ VERBOSE = Config.get('Global', 'verbose')
 def window_size():
 
     from ctypes import windll, create_string_buffer
-
     # stdin handle is -10
     # stdout handle is -11
     # stderr handle is -12
-
     h = windll.kernel32.GetStdHandle(-12)
     csbi = create_string_buffer(22)
     res = windll.kernel32.GetConsoleScreenBufferInfo(h, csbi)
-
     if res:
         import struct
         (bufx, bufy,
@@ -190,8 +219,7 @@ def table_merge():
         print('done')
 
 
-def table_bin(size=None, radius_start=1, radius_end=275,
-              step=1, percent=0.05):
+def table_bin(size=None, radius_start=1, radius_end=275, step=1, percent=0.05):
 
     if size == None:
         size = Config.get('grid_options', 'size')
@@ -494,7 +522,8 @@ def table_bin(size=None, radius_start=1, radius_end=275,
             sys.stdout.flush()
 
 
-def table_binlite(size=None, radius_start=0, radius_end=220, step=1, percent=0.05):
+def table_binlite(size=None, radius_start=0, radius_end=220, step=1,
+                  percent=0.05):
     if size == None:
         size = Config.get('grid_options', 'size')
     grid_dir = os.path.join(Config.get('PATH', 'grid_dir'), str(size))
@@ -646,7 +675,8 @@ def table_binlite(size=None, radius_start=0, radius_end=220, step=1, percent=0.0
             sys.stdout.flush()
 
 
-def table_binMPI(grid_fh, size=None, radius_start=0, radius_end=220, step=1, percent=0.05):
+def table_binMPI(grid_fh, size=None, radius_start=0, radius_end=220, step=1,
+                 percent=0.05):
     fh_list = grid_fh.split(os.path.sep)[-1].split('_')
     halo, d_mpc, f_type, ending = fh_list
     d_mpc = float(d_mpc[:3])

@@ -1,12 +1,16 @@
-from __future__ import division, absolute_import, print_function
-import os
-import sys
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 import ConfigParser
-import skysurvey
-from skysurvey.new_config import SYS_CFG_FNAME
-from matplotlib import pyplot as plt
-from astropy.table import Table
 import numpy as np
+import os
+import skysurvey
+import sys
+
+from astropy.table import Table
+from matplotlib import pyplot as plt
+from skysurvey.new_config import SYS_CFG_FNAME
 
 
 RECORD_TABLE = Table()

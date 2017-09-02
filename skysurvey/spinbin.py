@@ -1,33 +1,47 @@
-"""
+'''[summary]
 
-TODO
+[description]
 
--------------------------------------------------------------------------------
- Author     : Sol W. Courtney
- Location   : Columbia U Dept. of Astronomy & Astrophysics NYC, Ny
- Email      : swc2124@Columbia.edu
- Date       : Jan 2017
- Title      : skysurvey/skysurvey/spinbin.py
--------------------------------------------------------------------------------
-"""
+Attributes
+----------
+try: : {[type]}
+    [description]
+except ValueError, e: : {[type]}
+    [description]
+sys_config_fh : {[type]}
+    [description]
+SysConfig : {[type]}
+    [description]
+SysConfig.read(sys_config_fh) : {[type]}
+    [description]
+config_fh : {[type]}
+    [description]
+Config : {[type]}
+    [description]
+Config.read(config_fh) : {[type]}
+    [description]
+if __name__ : {[type]}
+    [description]
+'''
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
-
 import time
 
+from numpy import asarray
+from numpy import float16
+from numpy import float32
+from numpy import float64
+from numpy import int16
+from numpy import int32
+from numpy import int64
+from numpy import save
 from numpy import sqrt
 from numpy import square
-from numpy import asarray
-from numpy import int64
 from numpy import uint16
-from numpy import int16
-from numpy import float64
-from numpy import save
-from numpy import int32
-from numpy import float32
-from numpy import float16
 from numpy import unique
 
 try:
@@ -39,7 +53,8 @@ try:
     from .functions import load_satid
     from .new_config import SYS_CFG_FNAME
 
-except ValueError, e:
+except ValueError as e:
+    print(e[0], file=os.sys.stderr)
     from skysurvey.functions import load_data_arr
     from skysurvey.functions import load_ab_mags
     from skysurvey.functions import load_positions
@@ -49,13 +64,13 @@ except ValueError, e:
     from skysurvey.new_config import SYS_CFG_FNAME
 
 from c_functions import bin as bf
-from c_functions import trippel_rotate
-from c_functions import rotate
 from c_functions import find_dlims
 from c_functions import integerize
+from c_functions import rotate
+from c_functions import trippel_rotate
 
-from astropy.table import Table
 from astropy.table import Column
+from astropy.table import Table
 
 import ConfigParser
 
@@ -115,27 +130,19 @@ def display(arr, to_print=False, log=False):
         return str(msg)
 
 
-def _spin(halo, _m_lims=None, _distance_mpc=None, _fname=None,
-          _filter_type=None, table=True):
+def _spin(halo, _m_lims=None, _distance_mpc=None, _fname=None, _filter_type=None, table=True):
     if _m_lims == None:
         mag_list = [float(lim) for name, lim in
                     Config.items('Default_magnitude_limits')]
-        _m_lims = asarray(
-            mag_list,
-            dtype=float64)
+        _m_lims = asarray(mag_list, dtype=float64)
     if _distance_mpc == None:
         _distance_mpc = Config.getfloat('Distance', 'd_mpc')
     if _filter_type == None:
         _filter_type = Config.get('Filter', 'filter_type')
-    ab_mag_arr = load_ab_mags(
-        halo,
-        f_type=_filter_type)
+    ab_mag_arr = load_ab_mags(halo, f_type=_filter_type)
     abs_mag_limit = calculate_abs_mag(
-        distance=_distance_mpc,
-        _f_type=_filter_type)
-    d_limits = find_dlims(
-        ab_mag_arr,
-        asarray([abs_mag_limit], dtype=float64))
+        distance=_distance_mpc, _f_type=_filter_type)
+    d_limits = find_dlims(ab_mag_arr, asarray([abs_mag_limit], dtype=float64))
     app_mags = apparent_magnitude(ab_mag_arr, _distance_mpc)
     r_px, r_py, r_pz = trippel_rotate(load_positions(halo, d_limits))
     integer_x_arr, intiger_y_arr = integerize(r_px, r_py)
@@ -161,8 +168,7 @@ def _spin(halo, _m_lims=None, _distance_mpc=None, _fname=None,
                 description=display(ab_mag_arr[d_limits]),
                 unit='ABmag'),
             Column(
-                data=app_mags[d_limits].astype(
-                    float16),
+                data=app_mags[d_limits].astype(float16),
                 name='app_mags',
                 description=display(app_mags[d_limits]),
                 unit='mag'),
@@ -190,46 +196,29 @@ def _spin(halo, _m_lims=None, _distance_mpc=None, _fname=None,
                 description=display(satids),
                 unit='int16'),
             Column(
-                data=load_data_arr(
-                    halo,
-                    'teff',
-                    d_limits).astype(float16),
+                data=load_data_arr(halo, 'teff', d_limits).astype(float16),
                 name='teff',
                 unit='Kelvin'),
             Column(
-                data=load_data_arr(
-                    halo,
-                    'feh',
-                    d_limits).astype(float16),
+                data=load_data_arr(halo, 'feh', d_limits).astype(float16),
                 name='feh',
                 unit='dex'),
             Column(
-                data=load_data_arr(
-                    halo,
-                    'age',
-                    d_limits).astype(float16),
+                data=load_data_arr(halo, 'age', d_limits).astype(float16),
                 name='age',
                 unit='Gyr'),
             Column(
-                data=load_data_arr(
-                    halo,
-                    'alpha',
-                    d_limits).astype(float16),
+                data=load_data_arr(halo, 'alpha', d_limits).astype(float16),
                 name='alpha'),
             Column(
-                data=load_data_arr(
-                    halo,
-                    'smass',
-                    d_limits).astype(float16),
+                data=load_data_arr(halo, 'smass', d_limits).astype(float16),
                 name='smass',
                 unit='Msol'),
             Column(
-                data=load_data_arr(
-                    halo,
-                    'mact',
-                    d_limits).astype(float16),
+                data=load_data_arr(halo, 'mact', d_limits).astype(float16),
                 name='mact',
                 unit='Msol')])
+
         table_save_path = os.path.join(
             Config.get('PATH', 'table_dir'),
             'spinbin_output',
@@ -297,7 +286,8 @@ def spinallMPI(path=None, m_lims=None, d_mpc=None, f_type=None):
     rank = comm.Get_rank()
     mpi_size = comm.Get_size()
     name = MPI.Get_processor_name()
-
+    from time import sleep
+    sleep(rank * 0.5)
     if path == None:
         path = os.path.join(
             Config.get('PATH', 'grid_dir'),
@@ -318,7 +308,7 @@ def spinallMPI(path=None, m_lims=None, d_mpc=None, f_type=None):
         path, halo + '_' + str(d_mpc) + 'Mpc_' + f_type + '_grid')
     print('--> [ STARTING ' + halo + ' ]\nspining and binning halo ' + halo)
     save(filename, _spin(halo, _m_lims=m_lims, _fname=filename,
-         _distance_mpc=d_mpc, _filter_type=f_type))
+                         _distance_mpc=d_mpc, _filter_type=f_type))
 
 
 def spinone(halo, path=None, m_lims=None, d_mpc=None, f_type=None):
@@ -342,8 +332,7 @@ def spinone(halo, path=None, m_lims=None, d_mpc=None, f_type=None):
           '\n---------------------------------\n')
 
 
-def nospin_binall(path=None, m_lims=None,
-                  d_mpc=None, f_type=None, table='normal'):
+def nospin_binall(path=None, m_lims=None, d_mpc=None, f_type=None, table='normal'):
 
     if path == None:
         path = os.path.join(

@@ -9,17 +9,21 @@ TODO
 -------------------------------------------------------------------------------
 """
 
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
 import os
 
 import ConfigParser
-from numpy import load
-from numpy import save
-from numpy import ndarray
 import skysurvey
 
+from numpy import load
+from numpy import ndarray
+from numpy import save
+
 import ConfigParser
+
 from .new_config import SYS_CFG_FNAME
 sys_config_fh = os.path.join(os.path.dirname(
     os.path.realpath(skysurvey.__file__)), SYS_CFG_FNAME)

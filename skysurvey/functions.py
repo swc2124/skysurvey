@@ -1,15 +1,18 @@
 """TODO"""
-from __future__ import division, absolute_import, print_function
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 
-import os
 import math
 import numpy as np
+import os
 
 from c_functions import find_dlims
 
 import ConfigParser
-from .new_config import SYS_CFG_FNAME
 import skysurvey
+
+from .new_config import SYS_CFG_FNAME
 
 __all__ = ['load_ab_mags', 'apparent_magnitude', 'load_positions', 'load_satid', 'load_allkeys',
            'calculate_abs_mag', 'calculate_nFov']
@@ -47,7 +50,7 @@ def calculate_app_mag(cutoff, t_fov=1000.0, t_exp=1000.0):
 
 def calculate_abs_mag(distance=1.0, _f_type=None):
     '''
-    Description : used to calculate the intrinsic brightness a star must be in 
+    Description : used to calculate the intrinsic brightness a star must be in
             magnitude in order to be seen at a given distance in Mpc
 
     Parameters
@@ -60,7 +63,7 @@ def calculate_abs_mag(distance=1.0, _f_type=None):
     Returns
     -------
     float
-            absolute magnitude a star needs to be in order to be seen at the given 
+            absolute magnitude a star needs to be in order to be seen at the given
                     distance with the given apparent magnitude limit
     '''
     #print('calculating absolute mag limit')
@@ -90,7 +93,7 @@ def load_ab_mags(halo_name, f_type=None, f_prfx=None):
     Returns
     -------
     np arr
-        returns a magnitude numpy array 
+        returns a magnitude numpy array
 
     """
     if f_prfx == None:
@@ -122,7 +125,7 @@ def load_data_arr(halo_name, data_key, lim):
     Returns
     -------
     np arr
-        returns a magnitude numpy array 
+        returns a magnitude numpy array
 
     """
     fh = os.path.join(Config.get('PATH', 'halo_dir'),
@@ -134,7 +137,7 @@ def load_data_arr(halo_name, data_key, lim):
 
 def load_positions(halo, idx):
     '''
-    Load indexed x,y,z position arrays for a gin halo 
+    Load indexed x,y,z position arrays for a gin halo
 
     TODO <Extended description of function.>
 
@@ -170,7 +173,7 @@ def load_satid(halo, idx):
 
 def load_allkeys(halo, idx):
     '''
-    Load indexed x,y,z position arrays for a gin halo 
+    Load indexed x,y,z position arrays for a gin halo
 
     TODO <Extended description of function.>
 
@@ -200,7 +203,7 @@ def load_allkeys(halo, idx):
 
 def apparent_magnitude(mag_abs, distance):
     '''
-    Convert an array of absolute magnitudes into apparent magnitudes 
+    Convert an array of absolute magnitudes into apparent magnitudes
             for a given distance.
 
     TODO Extended description of function.
@@ -289,7 +292,7 @@ def kpc_box_at_distance(distance, kpc, unit=3600.0):
 def calculate_nFov(distance, kpc):
     '''
     Input distance in Mpc
-    Output number of FOV for a box covering _kpc_ radius at input distance 
+    Output number of FOV for a box covering _kpc_ radius at input distance
     ((square deg of box) / WFIRST square degree FOV)
     '''
     WFIRST_FOV = 0.79 * 0.43
