@@ -36,7 +36,7 @@ Config.read(config_fh)
 ebf_fh = os.path.join(Config.get('PATH', 'data_dir'), 'satprop.ebf')
 SATPROP = ebf.read(ebf_fh)
 #np.import_array()
-if 'NUMBER_OF_PROCESSORS' in os.environ.keys():
+if 'NUMBER_OF_PROCESSORS' in list(os.environ.keys()):
     NUM_PROCESSORS = int(os.environ['NUMBER_OF_PROCESSORS'])
 else:
     NUM_PROCESSORS = 1
@@ -207,7 +207,6 @@ def bin(
         np.float64_t apparent_mag
 
         # The grid array (grid)
-
         np.ndarray[np.float64_t, ndim = 3, mode='c'] grid = np.zeros((Config.getint('grid_options', 'size'), Config.getint('grid_options', 'size'), Config.getint('grid_options', 'n_slices')), dtype=np.float64)
 
         # Satprop arrays. TODO package data file
@@ -271,30 +270,26 @@ def bin(
         for i in prange(n_stars, schedule='dynamic'):
 
             # Check to see if star is in FOV of grid.
-            if (px[i] >= boundary_x or px[i] <= 0 or py[i] >= boundary_y or py[i] <= 0):
+            if (px[i] >= boundary_x 
+                or px[i] <= 0 
+                or py[i] >= boundary_y 
+                or py[i] <= 0):
                 missed += 1
 
             # If star is in the grid.
             else:
-
                 sat_number = satid[i]
-
                 sat_age = tsat[sat_number]
-
                 sat_bound = bsat[sat_number]
-
                 apparent_mag = ap_mags[i]
 
                 # If the star is unbound [0].
                 if not sat_bound:
                     unbound += 1
-
                     # Bin stars.
                     grid[px[i], py[i], 0] += 1.0
-
                     # Magnitudes.
                     grid[px[i], py[i], 1] += ab_mags[i]
-
                     #grid[px[i], py[i], 2] += apparent_mag
                     #if apparent_mag < mlim_min:
                     #    grid[px[i], py[i], 3] += 1.0
@@ -302,14 +297,11 @@ def bin(
                     #    grid[px[i], py[i], 4] += 1.0
                     #if apparent_mag < mlim_max:
                     #    grid[px[i], py[i], 5] += 1.0
-
                     # Accretion time (Gyr) of satellite.
                     grid[px[i], py[i], 2] += sat_age
                     # Satid.
                     grid[px[i], py[i], 3] += sat_number
-
-
-
+                
                 # If the star is bound [1].
                 else:
                     bound += 1

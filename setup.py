@@ -35,7 +35,7 @@ ext_modules = Extension('c_functions',
 
 def list_data_files():
     _include_list = []
-    _data_dirs = ['data', 'paper', 'tables', 'text']
+    _data_dirs = ['data', 'paper', 'tables']
     _file_types = ['.pdf', '.bib', '.tex', '.ebf', '.hdf5', '.txt']
     _pkg_data_path = os.path.join(os.path.curdir, 'skysurvey', 'data')
     for directory in _data_dirs:
