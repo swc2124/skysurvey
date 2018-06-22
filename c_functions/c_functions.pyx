@@ -59,7 +59,7 @@ def rotation_matrix(np.ndarray[np.float64_t, ndim=1, mode='c'] ax, np.float64_t 
     list,list,list
             returns a rotation matrix
     '''
-    #print('calculating rotation matrix')
+    # print('calculating rotation matrix')
     cdef np.float64_t a, b, c, d, aa, bb, cc, dd
     a = np.cos(th / 2.0)
     b, c, d = -(ax / (np.dot(ax, ax))**2) * np.sin(th / 2.0)
@@ -91,7 +91,7 @@ def rotate(
     array
             returns the rotated positions in the same form as they were input.
     '''
-    #print('rotating x, y and z position arrays')
+    # print('rotating x, y and z position arrays')
     return np.asarray(
         np.dot(
             rotation_matrix(axis, theta),
@@ -105,7 +105,7 @@ def trippel_rotate(
     np.ndarray[np.float64_t, ndim=2, mode='c'] xyz):
     '''
     '''
-    #print('starting trippel rotatation')
+    # print('starting trippel rotatation')
     cdef np.float64_t theta_1 = np.float64(
         np.divide(
             (np.random.randint(360) * np.pi),
@@ -156,7 +156,7 @@ def integerize(
     center = Config.getint('grid_options', 'size') / 2
     scale = Config.getint('grid_options', 'size') / (x.max() + np.abs(x.min()))
     line = '-' * 85
-    #print('converting px and py arrays to integers')
+    # print('converting px and py arrays to integers')
 
     print(line)
     print('[ integerize ]', '\n')

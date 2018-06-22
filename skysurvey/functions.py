@@ -7,14 +7,13 @@ import math
 import numpy as np
 import os
 
-from c_functions import find_dlims
-
 import ConfigParser
 import skysurvey
 
 from .new_config import SYS_CFG_FNAME
 
-__all__ = ['load_ab_mags', 'apparent_magnitude', 'load_positions', 'load_satid', 'load_allkeys',
+__all__ = ['load_ab_mags', 'apparent_magnitude',
+           'load_positions', 'load_satid', 'load_allkeys',
            'calculate_abs_mag', 'calculate_nFov']
 
 sys_config_fh = os.path.join(os.path.dirname(
@@ -58,18 +57,19 @@ def calculate_abs_mag(distance=1.0, _f_type=None):
     distance : float
             distance in Mpc to the star
     app_mag : float
-            apparent magnitude limit of the equipment being used, aka imaging depth.
+            apparent magnitude limit of the equipment being used,
+            aka imaging depth.
 
     Returns
     -------
     float
-            absolute magnitude a star needs to be in order to be seen at the given
-                    distance with the given apparent magnitude limit
+            absolute magnitude a star needs to be in order to be seen at the
+            given distance with the given apparent magnitude limit
     '''
-    #print('calculating absolute mag limit')
-    if distance == None:
+    # print('calculating absolute mag limit')
+    if distance is None:
         distance = Config.getfloat('Distance', 'd_mpc')
-    if _f_type == None:
+    if _f_type is None:
         _f_type = Config.get('Filter', 'filter_type')
     filter_limit = Config.getfloat('Filter_limits', _f_type)
     app_mag = calculate_app_mag(filter_limit)
@@ -77,7 +77,7 @@ def calculate_abs_mag(distance=1.0, _f_type=None):
 
 
 def load_ab_mags(halo_name, f_type=None, f_prfx=None):
-    """
+    """pep
     Summary line.
 
     Extended description of function.
@@ -96,14 +96,14 @@ def load_ab_mags(halo_name, f_type=None, f_prfx=None):
         returns a magnitude numpy array
 
     """
-    if f_prfx == None:
+    if f_prfx is None:
         f_prfx = Config.get('Filter', 'filter_prfx')
-    if f_type == None:
+    if f_type is None:
         f_type = Config.get('Filter', 'filter_type')
     _filter_ = f_prfx + f_type
     fh = os.path.join(Config.get('PATH', 'halo_dir'),
                       halo_name, _filter_ + '.npy')
-    #print('loading magnitude array: ' + fh)
+    # print('loading magnitude array: ' + fh)
     mags = np.load(fh)
     return mags.astype(np.float64)
 
@@ -130,7 +130,7 @@ def load_data_arr(halo_name, data_key, lim):
     """
     fh = os.path.join(Config.get('PATH', 'halo_dir'),
                       halo_name, data_key + '.npy')
-    #print('loading ' + data_key + ' array: ' + fh)
+    # print('loading ' + data_key + ' array: ' + fh)
     mags = np.load(fh, mmap_mode='r')[lim]
     return mags.astype(np.float64)
 
@@ -157,7 +157,7 @@ def load_positions(halo, idx):
     # use Config.get('PATH', 'halo_dir') from options to inform data directory
     # and concatenate it with the halo's name to form a PATH.
     fh = os.path.join(Config.get('PATH', 'halo_dir'), halo)
-    #print('loading position arrays from: ' + path)
+    # print('loading position arrays from: ' + path)
     position_arrays = []
     for key in Config.get('Data_keys', 'positions').split(','):
         position_arrays.append(
@@ -193,7 +193,7 @@ def load_allkeys(halo, idx):
     # use Config.get('PATH', 'halo_dir') from options to inform data directory
     # and concatenate it with the halo's name to form a PATH.
     fh = os.path.join(Config.get('PATH', 'halo_dir'), halo)
-    #print('loading data arrays from: ' + path)
+    # print('loading data arrays from: ' + path)
     data_arrays = []
     for key in Config.get('Data_keys', 'data').split(','):
         data_arrays.append(np.load(os.path.join(
@@ -221,7 +221,7 @@ def apparent_magnitude(mag_abs, distance):
     np.array
             Returns the apparent magnitude for the given distance.
     '''
-    #print('calculating apparent magnitudes')
+    # print('calculating apparent magnitudes')
     # make sure that the distance is greater than zero
     if distance < 0.0:
         distance = 0.1  # 100,000 Kpc
@@ -246,7 +246,7 @@ def rotation_matrix(ax, th):
     list,list,list
             returns a rotation matrix
     '''
-    #print('calculating rotation matrix')
+    # print('calculating rotation matrix')
     a = np.cos(np.asarray(th) / 2.0)
     b, c, d = -(np.asarray(ax) / (np.dot(ax, ax))**2) * \
         np.sin(np.asarray(th) / 2.0)
@@ -276,8 +276,13 @@ def rotate(xyz, axis, theta):
     array
             returns the rotated positions in the same form as they were input.
     '''
-    #print('rotating x, y and z position arrays')
-    return np.asarray(np.dot(rotation_matrix(axis, theta), xyz), dtype=np.float64)
+    # print('rotating x, y and z position arrays')
+    return np.asarray(
+                      np.dot(
+                             rotation_matrix(
+                                             axis,
+                                             theta),
+                             xyz), dtype=np.float64)
 
 
 def kpc_box_at_distance(distance, kpc, unit=3600.0):

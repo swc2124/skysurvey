@@ -33,6 +33,7 @@ table_dirs_names = [name for name in os.listdir(table_dir)
                     if os.path.isdir(os.path.join(table_dir, name))
                     if not name.startswith('.')]
 
+
 def _plot(feat_dict):
     if feat_dict['nboxes'] < 25:
         if os.path.isfile(feat_dict['plot_fh'] + '.png'):
@@ -82,6 +83,7 @@ def _plot(feat_dict):
         plt.close()
         return feat_dict
 
+
 def _plot_halo(table):
     print('plotting', table.meta['halo'])
     fig = plt.figure(figsize=(20, 20))
@@ -112,6 +114,7 @@ def _plot_halo(table):
         time.sleep(1)
         fig.savefig(plot_fh)
     plt.close()
+
 
 def merge_heavy(f_dict):
     for f_id in f_dict.keys():
@@ -169,6 +172,7 @@ def merge_heavy(f_dict):
         #f_dict[f_id] = _plot(f_dict[f_id])
     return f_dict
 
+
 def merge(f_dict):
     keys = f_dict.keys()
     for f_id in keys:
@@ -213,6 +217,7 @@ def merge(f_dict):
         #f_dict[f_id] = _plot(f_dict[f_id])
     return f_dict
 
+
 def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
     sys.stdout.write('\nstarting feature number: ' + str(plt_num))
     feature = {
@@ -233,6 +238,7 @@ def new_feature(r0, r1, d0, d1, halo, plt_num, points, xboxes, sat_book):
         'feature_id': plt_num,
         'sats_book': sat_book}
     return feature
+
 
 def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
     superset = False
@@ -278,11 +284,13 @@ def add_to_feature(fdict, r1, deg0, deg1, pts, xbx, sats):
     sys.stdout.flush()
     return fdict
 
+
 def count_satids(sats, sats_book):
     sats = sats.tolist()
     for satid in sats_book.keys():
         sats_book[satid] += sats.count(satid)
     return sats_book
+
 
 table_dirs = {}
 for name in table_dirs_names:
@@ -435,7 +443,6 @@ for name in tables:
 
 
 # print functions record keeping.
-
 
     for key in master_dict.keys():
         master_dict[key] = _plot(master_dict[key])

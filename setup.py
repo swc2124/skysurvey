@@ -8,8 +8,6 @@
 -------------------------------------------------------------------------------
 """
 import os
-
-
 from setuptools.extension import Extension
 from setuptools import setup
 from setuptools import find_packages
@@ -54,18 +52,13 @@ def list_data_files():
     return _include_list
 
 setup(
-
     name='skysurvey',
     version='0.1.0',
-
     author='Sol W. Courtney',
     author_email='swc2124@Columbia.edu',
-
     maintainer='Sol W. Courtney',
     maintainer_email='swc2124@Columbia.edu',
-
     url='https://github.com/swc2124/skysurvey',
-
     description=(
         'Python tools for working with stellar data '
         'in the form of numpy arrays.  Intended to '
@@ -74,14 +67,30 @@ setup(
     download_url='https://github.com/swc2124/skysurvey.git',
     license='MIT',
     include_package_data=True,
-    include_dirs=[get_include()],
-
-    packages=['skysurvey', 'c_functions'],
-    package_dir={'skysurvey': 'skysurvey', 'c_functions': 'c_functions'},
-    package_data={'skysurvey': list_data_files()},
-    install_requires=['docutils>=0.3', 'numpy>=0.x',
-                      'ebfpy>=0.x', 'astropy>=0.x', 'cython>=0.x'],
-    cmdclass={'build_ext': build_ext},
+    include_dirs=[
+        get_include()
+    ],
+    packages=[
+        'skysurvey',
+        'c_functions'
+    ],
+    package_dir={
+        'skysurvey': 'skysurvey',
+        'c_functions': 'c_functions'
+    },
+    package_data={
+        'skysurvey': list_data_files()
+    },
+    install_requires=[
+        'docutils>=0.3',
+        'numpy>=0.x',
+        'ebfpy>=0.x',
+        'astropy>=0.x',
+        'cython>=0.x'
+    ],
+    cmdclass={
+        'build_ext': build_ext
+    },
     ext_modules=cythonize(ext_modules, include_path=[get_include()]),
     entry_points={
         'console_scripts': [
@@ -94,8 +103,14 @@ setup(
 
         ]
     },
-
-
+    classifiers=[
+        "Development Status :: 3 - Alpha",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Science/Research",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+    ],
 )
-
 #-----------------------------------------------------------------------------#
+
