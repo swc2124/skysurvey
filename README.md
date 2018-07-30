@@ -1,8 +1,5 @@
 ## Welcome to Skysurvey
-
-Skysurvey is my collection of Python tools for making mock survey strategies and outputting information pertaining to that survey.  Skysurvey has a good sized library full of easy plotting functions for making useful data comparisons and examples.  It also has lots of automatic functions and features for working with stellar data in the context of observation.  I manage and maintain this package alone so please feel free to email me at swc2124@columbia.edu with any comments or questions.
-
-TODO...
+Skysurvey is my collection of Python tools for making mock survey strategies and outputting information about that survey. Skysurvey has a good-sized library full of natural plotting functions for making useful data comparisons and examples. It also has lots of automatic functions and features for working with astronomical data in the context of observation. I manage and maintain this package alone so please feel free to email me at swc2124@columbia.edu with any comments or questions.
 
 ### Installation & requirements.
 
@@ -143,12 +140,12 @@ TODO...
 
 3. set or reset the config file setup.cfg
         
-    The config file setup.cfg is where all the system defaults will be stored.
+    The config file setup.cfg is where all the system defaults live.
     To generate a new config file a user may run the following:
 
         skysurvey-new_cfg --prefix=/path/to/where/you/want/the/cfg/file
 
-    Within the new congih file look for the following headers and select your OS by setting its value to 1.
+    Within the new config file look for the following headers and select your OS by setting its value to 1.
     You may also set the path to the skysurvey file system if you wish.
     default path if value = False
 
